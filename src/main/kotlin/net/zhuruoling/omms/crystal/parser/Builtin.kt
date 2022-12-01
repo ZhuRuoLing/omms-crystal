@@ -3,52 +3,71 @@ package net.zhuruoling.omms.crystal.parser
 import org.slf4j.event.Level
 
 
-val regex =
-    Regex("\\[(\\d{2}:\\d{2}:\\d{2})\\] \\[([A-Za-z0-9\\u0020！@#$%^&*\\(\\)+=_-]*)[/]([A-Za-z0-9_-]*)\\]: ([^\\f\\r\\n\\v]*\\w*)")
+class BuiltinParser : MinecraftParser() {
 
+    private val regexRawInfo =
+        Regex("\\[(\\d{2}:\\d{2}:\\d{2})\\] \\[([A-Za-z0-9\\u0020！@#$%^&*\\(\\)+=_-]*)[/]([A-Za-z0-9_-]*)\\]: ([^\\f\\r\\n\\v]*\\w*)")
 
-class BasicParser : MinecraftParser() {
     override fun parseToBareInfo(raw: String): Info? {
-        val matcher = regex.toPattern().matcher(raw)
+        val matcher = regexRawInfo.toPattern().matcher(raw)
         if (!matcher.matches()) return null
         val level = Level.valueOf(matcher.group(3))
         return Info(matcher.group(4), matcher.group(2), level)
     }
 
-    override fun parseServerStart(raw: String): ServerStartInfo? {
-        TODO("Not yet implemented")
-    }
-
+    //Done (6.343s)! For help, type "help"
+    private val regexServerStarted = Regex("Done \\(([0-9.]*)s\\)\\! For help\\, type \\\"help\\\"")
     override fun parseServerStarted(raw: String): ServerStartedInfo? {
-        TODO("Not yet implemented")
+        val matcher = regexServerStarted.toPattern().matcher(raw)
+        if (!matcher.matches()) return null
+        val time = matcher.group(1).toDouble()
+        return ServerStartedInfo(time)
     }
 
-    override fun parseServerCommonInfo(raw: String): CommonInfo? {
-        TODO("Not yet implemented")
-    }
-
+    private val regexPlayerInfo = Regex("<([0-9A-Za-z_]*)> ([^\\n\\r]*)")
     override fun parseServerPlayerInfo(raw: String): PlayerInfo? {
-        TODO("Not yet implemented")
+        val matcher = regexPlayerInfo.toPattern().matcher(raw.removePrefix("[Not Secure] "))
+        if (!matcher.matches()) return null
+        val player = matcher.group(1)
+        val content = matcher.group(2)
+        return PlayerInfo(player = player, content = content, isNotSecure = raw.contains("[Not Secure] "))
     }
+
+    private val regexServerOverload =
+        Regex("Can't keep up! Is the server overloaded\\? Running ([0-9]*)ms or ([0-9]*) ticks behind")
 
     override fun parseServerOverloadInfo(raw: String): ServerOverloadInfo? {
-        TODO("Not yet implemented")
+        val matcher = regexServerOverload.toPattern().matcher(raw)
+        if (!matcher.matches()) return null
+        val timeMillis = matcher.group(1).toLong()
+        val ticks = matcher.group(2).toLong()
+        return ServerOverloadInfo(ticks, timeMillis)
     }
 
+    private val regexServerStarting = Regex("Starting minecraft server version ([a-zA-Z0-9_.-]*)")
     override fun parseServerStartingInfo(raw: String): ServerStartingInfo? {
-        TODO("Not yet implemented")
+        val matcher = regexServerStarting.toPattern().matcher(raw)
+        if (!matcher.matches()) return null
+        val version = matcher.group(1)
+        return ServerStartingInfo(version)
     }
 
-    override fun parsePlayerJoin(raw: String): PlayerJoin? {
-        TODO("Not yet implemented")
+    //ZhuRuoLing joined the game
+    private val regexPlayerJoin = Regex("([0-9A-Za-z_]*) joined the game")
+    override fun parsePlayerJoin(raw: String): PlayerJoinInfo? {
+        val m = regexPlayerJoin.toPattern().matcher(raw)
+        if (!m.matches()) return null
+        val player = m.group(1)
+        return PlayerJoinInfo(player)
     }
 
-    override fun parsePlayerLeft(raw: String): PlayerLeft? {
-        TODO("Not yet implemented")
-    }
-
-    override fun parseByPriority(raw: String): Any? {
-        TODO("Not yet implemented")
+    //ZhuRuoLing left the game
+    private val regexPlayerLeft = Regex("([0-9A-Za-z_]*) left the game")
+    override fun parsePlayerLeft(raw: String): PlayerLeftInfo? {
+        val matcher = regexPlayerLeft.toPattern().matcher(raw)
+        if (!matcher.matches())return null
+        val player = matcher.group(1)
+        return PlayerLeftInfo(player)
     }
 
 }

@@ -1,22 +1,24 @@
 package net.zhuruoling.omms.crystal.server
 
 
+import net.zhuruoling.omms.crystal.config.Config
 import net.zhuruoling.omms.crystal.event.*
 import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.main.SharedConstants.serverHandler
-import net.zhuruoling.omms.crystal.parser.BasicParser
+import net.zhuruoling.omms.crystal.parser.BuiltinParser
+import net.zhuruoling.omms.crystal.parser.ParserManager
+import net.zhuruoling.omms.crystal.util.createLogger
 import net.zhuruoling.omms.crystal.util.createServerLogger
-import net.zhuruoling.omms.crystal.util.resloveCommand
-import org.slf4j.LoggerFactory
+import net.zhuruoling.omms.crystal.util.resolveCommand
 import org.slf4j.MarkerFactory
 import org.slf4j.event.Level
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.lang.IllegalArgumentException
 import java.nio.charset.Charset
 
 enum class LaunchParameter
-
 
 class ServerHandler(
     private val launchCommand: String,
@@ -26,19 +28,18 @@ class ServerHandler(
     Thread("ServerHandler") {
 
     private val launchParameters: Array<out LaunchParameter?>
-    private val logger = LoggerFactory.getLogger("ServerHandler")
+    private val logger = createLogger("ServerHandler")
     private lateinit var out: OutputStream
     private lateinit var input: InputStream
     private val inputMap = mutableMapOf<Int, String>()
     private var who = "crystal"
     private var process: Process? = null
-
     init {
         this.launchParameters = launchParameters
     }
 
     override fun run() {
-        process = Runtime.getRuntime().exec(resloveCommand(launchCommand), null, File(workingDir))
+        process = Runtime.getRuntime().exec(resolveCommand(launchCommand), null, File(workingDir))
         out = process!!.outputStream
         input = process!!.inputStream
         val handler = ServerOutputHandler(process!!, *launchParameters)
@@ -56,7 +57,7 @@ class ServerHandler(
             sleep(10)
         }
         val exitCode = process!!.exitValue()
-        logger.info("Server exited with exit code $exitCode.")
+        //logger.info("Server exited with exit code $exitCode.")
         serverHandler = null
         SharedConstants.eventLoop.dispatch(ServerStoppedEvent, ServerStoppedEventArgs(exitCode, who))
     }
@@ -81,6 +82,7 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
     private val launchParameters: Array<out LaunchParameter?>
     private val logger = createServerLogger()
     private lateinit var input: InputStream
+    private val parser = ParserManager.getParser(Config.parserName) ?: throw IllegalArgumentException("Specified parser ${Config.parserName} does not exist.")
 
     init {
         this.launchParameters = launchParameters
@@ -88,18 +90,20 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
 
     override fun run() {
         try {
-            SharedConstants.eventLoop.dispatch(ServerStartingEvent, ServerStartingEventArgs(serverProcess.pid()))
+            //SharedConstants.eventLoop.dispatch(ServerStartingEvent, ServerStartingEventArgs(serverProcess.pid()))
             input = serverProcess.inputStream
             val reader = input.bufferedReader(Charset.forName("GBK"))
             while (serverProcess.isAlive) {
                 sleep(10)
                 val string = reader.readLine()
                 if (string != null) {
-                    val info = BasicParser().parseToBareInfo(string)
+                    val info = parser.parseToBareInfo(string)
                     if (info == null) {
                         println(string)
-                    }
-                    else {
+                    } else {
+                        //try to parse
+
+
                         SharedConstants.eventLoop.dispatch(ServerInfoEvent, ServerInfoEventArgs(info))
                         when (info.level) {
                             Level.DEBUG -> logger.debug(MarkerFactory.getMarker(info.thread), info.info)
@@ -112,6 +116,7 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
                 }
             }
         } catch (ignored: InterruptedException) {
+            //logger.detachAndStopAllAppenders()
         }
     }
 }

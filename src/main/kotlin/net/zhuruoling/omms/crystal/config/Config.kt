@@ -1,5 +1,6 @@
 package net.zhuruoling.omms.crystal.config
 
+import net.zhuruoling.omms.crystal.main.DebugOptions
 import net.zhuruoling.omms.crystal.util.joinFilePaths
 import java.io.File
 import java.io.FileReader
@@ -17,9 +18,17 @@ val configContentBase: String
     workingDirectory=server
     launchCommand=java -Xmx4G -Xms1G -jar server.jar nogui
     pluginDirectory=plugins
-    #Server Types:vanilla,(wip)forge
+    #Server Types:vanilla(builtin)
     serverType=vanilla
     commandPrefix=.
+    #debug options:
+    #   N:None/Off
+    #   A:All
+    #   E:Event
+    #   O:Main
+    #   P:Plugin
+    #   S:Server
+    debugOptions=N
 """.trimIndent()
 
 object Config {
@@ -28,6 +37,7 @@ object Config {
     var pluginDirectory = ""
     var serverType = ""
     var commandPrefix = "."
+    var parserName = ""
     fun load():Boolean {
         var isInit = false
         val configPath = joinFilePaths("config.properties")
@@ -43,10 +53,12 @@ object Config {
         val reader = FileReader(configPath)
         properties.load(reader)
         serverWorkingDirectory = properties["workingDirectory"] as String
-        serverType = properties["launchCommand"] as String
+        serverType = properties["serverType"] as String
         launchCommand = properties["launchCommand"] as String
         pluginDirectory = properties["pluginDirectory"] as String
         commandPrefix = properties["commandPrefix"] as String
+        parserName = if (serverType == "vanilla") "builtin" else serverType
+        DebugOptions.parse(properties["debugOptions"] as String)
         reader.close()
         return isInit
     }

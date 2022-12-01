@@ -1,5 +1,6 @@
 package net.zhuruoling.omms.crystal.plugin
 
+import net.zhuruoling.omms.crystal.main.DebugOptions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -10,7 +11,9 @@ class PluginLogger(private val pluginName: String) {
     }
 
     fun debug(content: String?) {
-        logger.debug("[$pluginName] $content")
+        if (DebugOptions.pluginDebug()) {
+            logger.debug("[$pluginName] $content")
+        }
     }
 
     fun error(content: String?) {

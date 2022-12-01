@@ -1,5 +1,6 @@
 package net.zhuruoling.omms.crystal.util
 
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -16,7 +17,7 @@ open class Manager<T, K>(
 ) {
     val map: MutableMap<T, K> = mutableMapOf()
     private val fileList = mutableListOf<String>()
-
+    private val logger = LoggerFactory.getLogger("ManagerBase")
     fun init() {
         map.clear()
         fileList.clear()

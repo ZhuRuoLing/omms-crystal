@@ -1,9 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     kotlin("jvm") version "1.7.10"
+    java
     application
 }
+
 
 group = "net.zhuruoling.omms"
 version = "0.0.1-SNAPSHOT"
@@ -12,6 +16,13 @@ repositories {
     mavenCentral()
     maven("https://libraries.minecraft.net")
 }
+tasks{
+    shadowJar {
+        archiveClassifier.set("full")
+    }
+}
+
+
 
 dependencies {
     implementation("com.google.code.gson:gson:2.10")
@@ -21,6 +32,9 @@ dependencies {
     implementation("com.mojang:brigadier:1.0.18")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.20")
     implementation("org.codehaus.groovy:groovy-all:3.0.13")
+    implementation("org.jline:jline:3.21.0")
+    implementation("cn.hutool:hutool-all:5.8.10")
+    implementation("commons-io:commons-io:2.11.0")
     testImplementation(kotlin("test"))
 }
 

@@ -1,25 +1,47 @@
 package net.zhuruoling.omms.crystal.event
 
 import net.zhuruoling.omms.crystal.parser.Info
-import java.util.StringTokenizer
+import net.zhuruoling.omms.crystal.parser.PlayerInfo
+import net.zhuruoling.omms.crystal.parser.ServerStartedInfo
+import net.zhuruoling.omms.crystal.parser.ServerStartingInfo
+import net.zhuruoling.omms.crystal.plugin.PluginInstance
+import net.zhuruoling.omms.crystal.plugin.ServerInterface
 
 
 //base
-open class Event(val id: String, val priority: Int)
+open class Event(open val id: String, val priority: Int) {
+    override fun hashCode(): Int {
+        return id.hashCode() + priority.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Event) return false
+        if (id != other.id) return false
+        if (priority != other.priority) return false
+        return true
+    }
+}
+
 open class EventArgs
 
 //plugin
-class PluginEvent(id: String, val pluginId: String, priority: Int = 1) : Event(id, priority)
-class PluginEventArgs : EventArgs() {
-    private val hashMap: HashMap<String, Any> = hashMapOf()
-    fun insert(key: String, value: Any) {
-        hashMap[key] = value
+open class PluginEvent(id: String, open val pluginId: String, priority: Int = 1) : Event(id, priority) {
+    override fun hashCode(): Int {
+        return super.hashCode() + pluginId.hashCode()
     }
 
-    fun get(key: String): Any? {
-        return if (hashMap.containsKey(key)) hashMap[key] else throw NoSuchElementException("")
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PluginEvent) return false
+        if (!super.equals(other)) return false
+
+        if (pluginId != other.pluginId) return false
+
+        return true
     }
 }
+
 
 /*
 crystal.server.info         v
@@ -38,41 +60,119 @@ crystal.plugin.unload       v
 
 //server
 object ServerInfoEvent : Event("crystal.server.info", 1000)
-class ServerInfoEventArgs(val info: Info) : EventArgs()
+class ServerInfoEventArgs(val info: Info) : EventArgs() {
+    override fun toString(): String {
+        return "ServerInfoEventArgs(info=$info)"
+    }
+}
 
 object ServerStartEvent : Event("crystal.server.start", 1000)
-class ServerStartEventArgs(val startupCmd: String, val workingDir: String) : EventArgs()
+class ServerStartEventArgs(val startupCmd: String, val workingDir: String) : EventArgs() {
+    override fun toString(): String {
+        return "ServerStartEventArgs(startupCmd='$startupCmd', workingDir='$workingDir')"
+    }
+}
 
 object ServerStartingEvent : Event("crystal.server.starting", 1000)
-class ServerStartingEventArgs(val pid: Long) : EventArgs()
+class ServerStartingEventArgs(val pid: Long, val version: String) : EventArgs() {
+    override fun toString(): String {
+        return "ServerStartingEventArgs(pid=$pid)"
+    }
+}
 
 object ServerStartedEvent : Event("crystal.server.started", 1000)
-class ServerStartedEventArgs() : EventArgs()
+class ServerStartedEventArgs(val info: ServerStartedInfo) : EventArgs()
 
 object ServerStopEvent : Event("crystal.server.stop", 1000)
-class ServerStopEventArgs(val id: String, val force: Boolean) : EventArgs()
+class ServerStopEventArgs(val id: String, val force: Boolean) : EventArgs() {
+    override fun toString(): String {
+        return "ServerStopEventArgs(id='$id', force=$force)"
+    }
+}
 
 object ServerStoppingEvent : Event("crystal.server.stopping", 1000)
 class ServerStoppingEventArgs(val id: String) : EventArgs()
 
 object ServerStoppedEvent : Event("crystal.server.stopped", 1000)
-class ServerStoppedEventArgs(val retValue: Int, val who: String) : EventArgs()
+class ServerStoppedEventArgs(val retValue: Int, val who: String) : EventArgs() {
+    override fun toString(): String {
+        return "ServerStoppedEventArgs(retValue=$retValue, who='$who')"
+    }
+}
+
+object ServerOverloadEvent: Event("crystal.server.overload", 100);
+class ServerOverloadEventArgs(val ticks: Long, val time:Double): EventArgs()
+
+
 
 
 //player
 object PlayerInfoEvent : Event("crystal.server.player.info", 100)
-class PlayerInfoEventArgs(val content: String, val player: String) : EventArgs()
+class PlayerInfoEventArgs(val content: String, val playerInfo: PlayerInfo) : EventArgs() {
+    override fun toString(): String {
+        return "PlayerInfoEventArgs(content='$content', player='$playerInfo')"
+    }
+}
 
 object PlayerJoinEvent : Event("crystal.server.player.join", 100)
-class PlayerJoinEventArgs(val player: String) : EventArgs()
+class PlayerJoinEventArgs(val player: String) : EventArgs() {
+    override fun toString(): String {
+        return "PlayerJoinEventArgs(player='$player')"
+    }
+}
 
 object PlayerLeftEvent : Event("crystal.server.player.left", 100)
-class PlayerLeftEventArgs(val player: String) : EventArgs()
+class PlayerLeftEventArgs(val player: String) : EventArgs() {
+    override fun toString(): String {
+        return "PlayerLeftEventArgs(player='$player')"
+    }
+}
 
 
 //plugin
-object PluginLoadEvent : Event("crystal.plugin.load", 10)
-class PluginLoadEventArgs(pluginId: String) : EventArgs()
+class PluginLoadEvent(override val pluginId: String) : PluginEvent("crystal.plugin.load", pluginId, 10)
+class PluginLoadEventArgs(
+    val pluginId: String,
+    val serverInterface: ServerInterface,
+    val pluginInstance: PluginInstance
+) : EventArgs() {
+    override fun toString(): String {
+        return "PluginLoadEventArgs(pluginId='$pluginId', serverInterface=$serverInterface, pluginInstance=$pluginInstance)"
+    }
+}
 
-object PluginUnloadEvent : Event("crystal.plugin.unload", 10)
-class PluginUnloadEventArgs(pluginId: String) : EventArgs()
+class PluginUnloadEvent(override val pluginId: String) : PluginEvent("crystal.plugin.unload", pluginId, 10)
+class PluginUnloadEventArgs(
+    val pluginId: String,
+    val serverInterface: ServerInterface,
+    val pluginInstance: PluginInstance
+) : EventArgs() {
+    override fun toString(): String {
+        return "PluginUnloadEventArgs(pluginId='$pluginId', serverInterface=$serverInterface, pluginInstance=$pluginInstance)"
+    }
+}
+
+class PluginCustomEvent(pluginId: String, override val id: String) : PluginEvent(id, pluginId, 10)
+class PluginCustomEventArgs : EventArgs() {
+    private val hashMap: HashMap<String, Any> = hashMapOf()
+    fun insert(key: String, value: Any) {
+        hashMap[key] = value
+    }
+
+    fun get(key: String): Any? {
+        return if (hashMap.containsKey(key)) hashMap[key] else throw NoSuchElementException("")
+    }
+
+    override fun toString(): String {
+        return "PluginEventArgs(hashMap=$hashMap)"
+    }
+}
+
+//misc
+
+object ConsoleInputEvent : Event("crystal.console.input", 1)
+class ConsoleInputEventArgs(val content: String) : EventArgs() {
+    override fun toString(): String {
+        return "ConsoleInputEventArgs(content='$content')"
+    }
+}
