@@ -3,13 +3,15 @@ package net.zhuruoling.omms.crystal.parser
 interface Parser {}
 
 abstract class MinecraftParser : Parser {
-    abstract fun parseToBareInfo(raw: String): Info?
-    abstract fun parseServerStarted(raw: String): ServerStartedInfo?
-    abstract fun parseServerPlayerInfo(raw: String): PlayerInfo?
-    abstract fun parseServerOverloadInfo(raw: String): ServerOverloadInfo?
-    abstract fun parseServerStartingInfo(raw: String): ServerStartingInfo?
-    abstract fun parsePlayerJoin(raw: String): PlayerJoinInfo?
-    abstract fun parsePlayerLeft(raw: String): PlayerLeftInfo?
+    abstract fun parseToBareInfo(raw: String): Info?// TODO:
+    abstract fun parseServerStartedInfo(raw: String): ServerStartedInfo?// TODO:
+    abstract fun parsePlayerInfo(raw: String): PlayerInfo?// TODO:
+    abstract fun parseServerOverloadInfo(raw: String): ServerOverloadInfo?// TODO:
+    abstract fun parseServerStartingInfo(raw: String): ServerStartingInfo?// TODO:
+    abstract fun parsePlayerJoinInfo(raw: String): PlayerJoinInfo?// TODO:
+    abstract fun parsePlayerLeftInfo(raw: String): PlayerLeftInfo?
+
+    abstract fun parseServerStoppingInfo(raw: String):ServerStoppingInfo?
 }
 
 class UnableToParseException : UnsupportedOperationException()

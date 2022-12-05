@@ -13,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SomeJavaUtil {
+public class CommandUtil {
     public static <S> void removeChild(@NotNull CommandNode<S> commandNode,
                                        @NotNull Map<String, CommandNode<S>> children,
                                        @NotNull Map<String, LiteralCommandNode<S>> literals,

@@ -17,7 +17,7 @@ class BuiltinParser : MinecraftParser() {
 
     //Done (6.343s)! For help, type "help"
     private val regexServerStarted = Regex("Done \\(([0-9.]*)s\\)\\! For help\\, type \\\"help\\\"")
-    override fun parseServerStarted(raw: String): ServerStartedInfo? {
+    override fun parseServerStartedInfo(raw: String): ServerStartedInfo? {
         val matcher = regexServerStarted.toPattern().matcher(raw)
         if (!matcher.matches()) return null
         val time = matcher.group(1).toDouble()
@@ -25,7 +25,7 @@ class BuiltinParser : MinecraftParser() {
     }
 
     private val regexPlayerInfo = Regex("<([0-9A-Za-z_]*)> ([^\\n\\r]*)")
-    override fun parseServerPlayerInfo(raw: String): PlayerInfo? {
+    override fun parsePlayerInfo(raw: String): PlayerInfo? {
         val matcher = regexPlayerInfo.toPattern().matcher(raw.removePrefix("[Not Secure] "))
         if (!matcher.matches()) return null
         val player = matcher.group(1)
@@ -54,7 +54,7 @@ class BuiltinParser : MinecraftParser() {
 
     //ZhuRuoLing joined the game
     private val regexPlayerJoin = Regex("([0-9A-Za-z_]*) joined the game")
-    override fun parsePlayerJoin(raw: String): PlayerJoinInfo? {
+    override fun parsePlayerJoinInfo(raw: String): PlayerJoinInfo? {
         val m = regexPlayerJoin.toPattern().matcher(raw)
         if (!m.matches()) return null
         val player = m.group(1)
@@ -63,11 +63,20 @@ class BuiltinParser : MinecraftParser() {
 
     //ZhuRuoLing left the game
     private val regexPlayerLeft = Regex("([0-9A-Za-z_]*) left the game")
-    override fun parsePlayerLeft(raw: String): PlayerLeftInfo? {
+    override fun parsePlayerLeftInfo(raw: String): PlayerLeftInfo? {
         val matcher = regexPlayerLeft.toPattern().matcher(raw)
-        if (!matcher.matches())return null
+        if (!matcher.matches()) return null
         val player = matcher.group(1)
         return PlayerLeftInfo(player)
+    }
+
+    override fun parseServerStoppingInfo(raw: String): ServerStoppingInfo? {
+        return (
+                if (raw == "Stopping server")
+                    ServerStoppingInfo()
+                else
+                    null
+                )
     }
 
 }

@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
@@ -24,6 +23,7 @@ tasks{
 
 
 
+
 dependencies {
     implementation("com.google.code.gson:gson:2.10")
     implementation("org.slf4j:slf4j-api:2.0.3")
@@ -35,6 +35,8 @@ dependencies {
     implementation("org.jline:jline:3.21.0")
     implementation("cn.hutool:hutool-all:5.8.10")
     implementation("commons-io:commons-io:2.11.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.22")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     testImplementation(kotlin("test"))
 }
 

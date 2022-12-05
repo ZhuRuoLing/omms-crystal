@@ -5,7 +5,6 @@ import net.zhuruoling.omms.crystal.config.Config
 import net.zhuruoling.omms.crystal.event.*
 import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.main.SharedConstants.serverHandler
-import net.zhuruoling.omms.crystal.parser.BuiltinParser
 import net.zhuruoling.omms.crystal.parser.ParserManager
 import net.zhuruoling.omms.crystal.util.createLogger
 import net.zhuruoling.omms.crystal.util.createServerLogger
@@ -15,7 +14,6 @@ import org.slf4j.event.Level
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.lang.IllegalArgumentException
 import java.nio.charset.Charset
 
 enum class LaunchParameter
@@ -34,14 +32,21 @@ class ServerHandler(
     private val inputMap = mutableMapOf<Int, String>()
     private var who = "crystal"
     private var process: Process? = null
+
     init {
         this.launchParameters = launchParameters
     }
 
     override fun run() {
-        process = Runtime.getRuntime().exec(resolveCommand(launchCommand), null, File(workingDir))
-        out = process!!.outputStream
-        input = process!!.inputStream
+        try {
+            process = Runtime.getRuntime().exec(resolveCommand(launchCommand), null, File(workingDir))
+            out = process!!.outputStream
+            input = process!!.inputStream
+        } catch (e: Exception) {
+            logger.error("Cannot start server.", e)
+            SharedConstants.eventLoop.dispatch(ServerStoppedEvent, ServerStoppedEventArgs(Integer.MIN_VALUE, who))
+            return
+        }
         val handler = ServerOutputHandler(process!!, *launchParameters)
         handler.start()
         val writer = out.writer(Charset.defaultCharset())
@@ -82,7 +87,8 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
     private val launchParameters: Array<out LaunchParameter?>
     private val logger = createServerLogger()
     private lateinit var input: InputStream
-    private val parser = ParserManager.getParser(Config.parserName) ?: throw IllegalArgumentException("Specified parser ${Config.parserName} does not exist.")
+    private val parser = ParserManager.getParser(Config.parserName)
+        ?: throw IllegalArgumentException("Specified parser ${Config.parserName} does not exist.")
 
     init {
         this.launchParameters = launchParameters
@@ -90,7 +96,6 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
 
     override fun run() {
         try {
-            //SharedConstants.eventLoop.dispatch(ServerStartingEvent, ServerStartingEventArgs(serverProcess.pid()))
             input = serverProcess.inputStream
             val reader = input.bufferedReader(Charset.forName("GBK"))
             while (serverProcess.isAlive) {
@@ -101,10 +106,10 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
                     if (info == null) {
                         println(string)
                     } else {
-                        //try to parse
-
-
+                        //dispatch a global info first
                         SharedConstants.eventLoop.dispatch(ServerInfoEvent, ServerInfoEventArgs(info))
+                        //and then started to parse
+                        parseAndDispatch(info.info)
                         when (info.level) {
                             Level.DEBUG -> logger.debug(MarkerFactory.getMarker(info.thread), info.info)
                             Level.ERROR -> logger.error(MarkerFactory.getMarker(info.thread), info.info)
@@ -118,5 +123,54 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
         } catch (ignored: InterruptedException) {
             //logger.detachAndStopAllAppenders()
         }
+    }
+
+    private fun parseAndDispatch(processedInfo: String) {
+        val serverStartingInfo = parser.parseServerStartingInfo(processedInfo)
+        if (serverStartingInfo != null) {
+            dispatchEvent(ServerStartingEvent, ServerStartingEventArgs(serverProcess.pid(), serverStartingInfo.version))
+            return
+        }
+        val serverStartedInfo = parser.parseServerStartedInfo(processedInfo)
+        if (serverStartedInfo != null) {
+            dispatchEvent(ServerStartedEvent, ServerStartedEventArgs(timeUsed = serverStartedInfo.timeElapsed))
+            return
+        }
+        val serverOverloadInfo = parser.parseServerOverloadInfo(processedInfo)
+        if (serverOverloadInfo != null) {
+            dispatchEvent(
+                ServerOverloadEvent,
+                ServerOverloadEventArgs(serverOverloadInfo.ticks, serverOverloadInfo.time)
+            )
+            return
+        }
+        val serverStoppingInfo = parser.parseServerStoppingInfo(processedInfo)
+        if (serverStoppingInfo != null) {
+            dispatchEvent(ServerStoppingEvent, ServerStoppingEventArgs())
+            return
+        }
+        val playerJoinInfo = parser.parsePlayerJoinInfo(processedInfo)
+        if (playerJoinInfo != null) {
+            dispatchEvent(PlayerJoinEvent, PlayerJoinEventArgs(player = playerJoinInfo.player))
+            return
+        }
+        val playerInfo = parser.parsePlayerInfo(processedInfo)
+        if (playerInfo != null) {
+            dispatchEvent(
+                PlayerInfoEvent,
+                PlayerInfoEventArgs(content = playerInfo.content, player = playerInfo.content)
+            )
+            return
+        }
+        val playerLeftInfo = parser.parsePlayerLeftInfo(processedInfo)
+        if (playerLeftInfo != null) {
+            dispatchEvent(PlayerLeftEvent, PlayerLeftEventArgs(player = playerLeftInfo.player))
+            return
+        }
+        return
+    }
+
+    private fun dispatchEvent(e: Event, args: EventArgs) {
+        SharedConstants.eventLoop.dispatch(e, args)
     }
 }

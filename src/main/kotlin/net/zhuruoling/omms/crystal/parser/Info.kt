@@ -6,11 +6,6 @@ class Info(
     val level: org.slf4j.event.Level
 )
 
-data class CommonInfo(
-    val raw: String,
-    val info: String
-)
-
 data class PlayerInfo(
     val isNotSecure: Boolean,
     val player: String,
@@ -33,3 +28,5 @@ data class ServerOverloadInfo(
 data class ServerStartingInfo(val version: String)
 //data class ServerStartingInfo(val ip: String, val port: Int)
 data class ServerStartedInfo(val timeElapsed: Double)
+
+class ServerStoppingInfo

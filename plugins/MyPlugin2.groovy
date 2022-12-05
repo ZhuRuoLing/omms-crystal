@@ -8,15 +8,7 @@ class MyPlugin extends PluginMain {
     @Override
     void onLoad(ServerInterface serverInterface) {
         logger = serverInterface.getLogger()
-        logger.warn("begin of 1e5 loop!")
-        int i = 114514
-        var timeStart = System.currentTimeMillis()
-        for (j in 0..<100001) {
-            i--
-        }
-        var timeEnds = System.currentTimeMillis()
-        logger.warn("end of 1e5 loop")
-        logger.warn(Long.toString(timeEnds - timeStart))
+        logger.info("KONNICHIWA ZAWARUDOOOOOOOOOOOO!")
     }
 
     @Override
@@ -26,6 +18,7 @@ class MyPlugin extends PluginMain {
 
     @Override
     PluginMetadata getPluginMetadata() {
-        return new PluginMetadata("my_plugin", ModuleDescriptor.Version.parse("0.0.1"), "ZhuRuoLing")
+        return new PluginMetadata("my_plugin2", ModuleDescriptor.Version.parse("0.0.1"), "ZhuRuoLing")
     }
+
 }

@@ -1,9 +1,6 @@
 package net.zhuruoling.omms.crystal.event
 
 import net.zhuruoling.omms.crystal.parser.Info
-import net.zhuruoling.omms.crystal.parser.PlayerInfo
-import net.zhuruoling.omms.crystal.parser.ServerStartedInfo
-import net.zhuruoling.omms.crystal.parser.ServerStartingInfo
 import net.zhuruoling.omms.crystal.plugin.PluginInstance
 import net.zhuruoling.omms.crystal.plugin.ServerInterface
 
@@ -81,7 +78,7 @@ class ServerStartingEventArgs(val pid: Long, val version: String) : EventArgs() 
 }
 
 object ServerStartedEvent : Event("crystal.server.started", 1000)
-class ServerStartedEventArgs(val info: ServerStartedInfo) : EventArgs()
+class ServerStartedEventArgs(val timeUsed:Double) : EventArgs()
 
 object ServerStopEvent : Event("crystal.server.stop", 1000)
 class ServerStopEventArgs(val id: String, val force: Boolean) : EventArgs() {
@@ -91,7 +88,7 @@ class ServerStopEventArgs(val id: String, val force: Boolean) : EventArgs() {
 }
 
 object ServerStoppingEvent : Event("crystal.server.stopping", 1000)
-class ServerStoppingEventArgs(val id: String) : EventArgs()
+class ServerStoppingEventArgs : EventArgs()
 
 object ServerStoppedEvent : Event("crystal.server.stopped", 1000)
 class ServerStoppedEventArgs(val retValue: Int, val who: String) : EventArgs() {
@@ -101,16 +98,16 @@ class ServerStoppedEventArgs(val retValue: Int, val who: String) : EventArgs() {
 }
 
 object ServerOverloadEvent: Event("crystal.server.overload", 100);
-class ServerOverloadEventArgs(val ticks: Long, val time:Double): EventArgs()
+class ServerOverloadEventArgs(val ticks: Long, val time:Long): EventArgs()
 
 
 
 
 //player
 object PlayerInfoEvent : Event("crystal.server.player.info", 100)
-class PlayerInfoEventArgs(val content: String, val playerInfo: PlayerInfo) : EventArgs() {
+class PlayerInfoEventArgs(val content: String, val player: String) : EventArgs() {
     override fun toString(): String {
-        return "PlayerInfoEventArgs(content='$content', player='$playerInfo')"
+        return "PlayerInfoEventArgs(content='$content', player='$player')"
     }
 }
 

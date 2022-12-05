@@ -1,15 +1,15 @@
 package net.zhuruoling.omms.crystal.main
 
+import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import net.zhuruoling.omms.crystal.console.ConsoleHandler
-import net.zhuruoling.omms.crystal.console.command.CommandSourceStack
+import net.zhuruoling.omms.crystal.command.CommandSourceStack
 import net.zhuruoling.omms.crystal.event.Event
 import net.zhuruoling.omms.crystal.event.EventDispatcher
 import net.zhuruoling.omms.crystal.event.EventHandler
 import net.zhuruoling.omms.crystal.event.EventLoop
 import net.zhuruoling.omms.crystal.server.ServerHandler
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 object SharedConstants {
@@ -18,9 +18,9 @@ object SharedConstants {
     lateinit var eventLoop: EventLoop
     lateinit var consoleHandler: ConsoleHandler
     val pluginCommandTable: HashMap<String, ArrayList<LiteralArgumentBuilder<CommandSourceStack>>> = hashMapOf()
-    val pluginEventTable: HashMap<String, ArrayList<Event>> = hashMapOf()
-    val pluginEventHandlerTable: HashMap<String, ArrayList<EventHandler>> = hashMapOf()
-    var needExit = true
+    val pluginEventTable: HashMap<String, HashMap<String, Event>> = hashMapOf()
+    val pluginEventHandlerTable: HashMap<String, ArrayList<Pair<Event, EventHandler>>> = hashMapOf()
+    var commandDispatcher = CommandDispatcher<CommandSourceStack>()
 }
 
 object DebugOptions {
@@ -56,20 +56,7 @@ object DebugOptions {
     fun serverDebug() = !off and (all or server)
 
     override fun toString(): String {
-        return (
-                if (off)
-                    "OFF "
-                else (
-                        if (allDebug())
-                            "ALL "
-                        else (
-                                (
-                                        if (eventDebug()) "EVENT " else "")
-                                        + (if (mainDebug()) "MAIN " else "")
-                                        + (if (pluginDebug()) "PLUGIN " else "")
-                                        + (if (serverDebug()) "SERVER " else "")
-                                )
-                        )
-                )
+        return if (off) "OFF " else (if (allDebug()) "ALL " else ((if (eventDebug()) "EVENT " else "") + (if (mainDebug()) "MAIN " else "") + (if (pluginDebug()) "PLUGIN " else "") + (if (serverDebug()) "SERVER " else "")))
+
     }
 }
