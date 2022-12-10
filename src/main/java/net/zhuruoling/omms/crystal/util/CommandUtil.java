@@ -1,5 +1,6 @@
 package net.zhuruoling.omms.crystal.util;
 
+import cn.hutool.core.compiler.CompilerUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
@@ -63,4 +64,7 @@ public class CommandUtil {
         }
     }
 
+    void foo(){
+        Class<? extends String> clazz = null;
+    }
 }

@@ -1,20 +1,19 @@
 package net.zhuruoling.omms.crystal.event
 
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import net.zhuruoling.omms.crystal.main.DebugOptions
 import net.zhuruoling.omms.crystal.util.createLogger
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 
 class EventDispatcher {
     private val eventMap: ConcurrentHashMap<Event, ArrayList<(EventArgs) -> Unit>> = ConcurrentHashMap()
     private val executor = Executors.newFixedThreadPool(4)
     private val logger = createLogger("EventDispatcher", DebugOptions.eventDebug())
-    private val coroutineDispatcher = Dispatchers.Default
     fun dispatchEvent(e: Event, args: EventArgs) {
         if (DebugOptions.eventDebug()) logger.info("[DEBUG] Dispatching Event ${e.id} with args $args")
         val handlers = eventMap[e]
@@ -22,8 +21,12 @@ class EventDispatcher {
             //logger.warn("${e.id} not exist.")
         } else {
             handlers.forEach {
-                CoroutineScope(coroutineDispatcher).launch(coroutineDispatcher) {
-                    it(args)
+                try {
+                    executor.submit {
+                        it(args)
+                    }
+                } catch (e: Exception) {
+                    logger.error("An Exception occurred while dispatching events.", e)
                 }
             }
         }
@@ -50,6 +53,7 @@ class EventDispatcher {
     }
 
     fun shutdown() {
+        Thread.sleep(1024)
         executor.shutdown()
     }
 }

@@ -4,6 +4,7 @@ import net.zhuruoling.omms.crystal.event.PluginLoadEvent
 import net.zhuruoling.omms.crystal.event.PluginLoadEventArgs
 import net.zhuruoling.omms.crystal.event.PluginUnloadEvent
 import net.zhuruoling.omms.crystal.event.PluginUnloadEventArgs
+import net.zhuruoling.omms.crystal.main.DebugOptions
 import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.util.Manager
 import net.zhuruoling.omms.crystal.util.createLogger
@@ -25,7 +26,9 @@ object PluginManager : Manager<String, PluginInstance>(
     afterInit = null,
     initializer = {
         val instance = GroovyPluginInstance(it).initPlugin()
-        logger.info("Plugin metadata of $it is ${instance.metadata}")
+        if (DebugOptions.pluginDebug()) {
+            logger.info("Plugin metadata of $it is ${instance.metadata}")
+        }
         val pair = Pair(instance.metadata.id!!, PluginInstance(instance.metadata.id!!, instance))
         val pluginLoadEvent = PluginLoadEvent(instance.metadata.id!!)
         val pluginUnloadEvent = PluginUnloadEvent(instance.metadata.id!!)
@@ -37,10 +40,19 @@ object PluginManager : Manager<String, PluginInstance>(
                 return@registerHandler
             }
             eventArgs.pluginInstance.pluginInstance.onLoad(eventArgs.serverInterface)
+            if (DebugOptions.pluginDebug()) {
+                logger.info("Registering plugin ${eventArgs.pluginId} declared api methods:")
+                eventArgs.pluginInstance.pluginInstance.apiMethods.forEach { (_, method) ->
+                    logger.info("\tPlugin ${eventArgs.pluginId} declared method: ${method.name}")
+                }
+            }
+            SharedConstants.pluginDeclaredApiMethodMap[eventArgs.pluginId] =
+                eventArgs.pluginInstance.pluginInstance.apiMethods
+
         }
         SharedConstants.eventDispatcher.registerHandler(pluginUnloadEvent) { eventArgs ->
             eventArgs as PluginUnloadEventArgs
-            logger.info("Unoading plugin ${eventArgs.pluginId}")
+            logger.info("Unloading plugin ${eventArgs.pluginId}")
             if (eventArgs.pluginInstance.pluginInstance.pluginStatus == PluginStatus.UNLOADED) {
                 logger.warn("Plugin ${eventArgs.pluginId} already unloaded!")
                 return@registerHandler
@@ -66,18 +78,20 @@ object PluginManager : Manager<String, PluginInstance>(
     }
 
     fun loadAll() {
+        logger.info("Loading all Plugins.")
         this.map.forEach { (t, u) ->
             SharedConstants.eventLoop.dispatch(PluginLoadEvent(t), PluginLoadEventArgs(t, ServerInterface(t), u))
         }
     }
 
     fun unloadAll() {
+        logger.info("Unloading all Plugins.")
         this.map.forEach { (t, u) ->
-            SharedConstants.eventLoop.dispatch(PluginLoadEvent(t), PluginLoadEventArgs(t, ServerInterface(t), u))
+            SharedConstants.eventLoop.dispatch(PluginUnloadEvent(t), PluginUnloadEventArgs(t, ServerInterface(t), u))
         }
     }
 
-    fun doPluginCleanup(id: String) {
+    private fun doPluginCleanup(id: String) {
         SharedConstants.pluginEventHandlerTable[id]?.forEach {
             SharedConstants.eventDispatcher.unregisterHandler(it.first, it.second)
         }
@@ -87,6 +101,11 @@ object PluginManager : Manager<String, PluginInstance>(
             unregisterCommand(it, SharedConstants.commandDispatcher)
         }
         SharedConstants.pluginCommandTable.remove(id)
+        SharedConstants.pluginDeclaredApiMethodMap.remove(id)
+    }
+
+    fun getPluginInstance(id: String): PluginInstance? {
+        return map[id]
     }
 }
 

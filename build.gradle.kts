@@ -37,6 +37,7 @@ dependencies {
     implementation("commons-io:commons-io:2.11.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.22")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("com.alibaba.fastjson2:fastjson2:2.0.20.graal")
     testImplementation(kotlin("test"))
 }
 
@@ -45,7 +46,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
 }
 
 application {

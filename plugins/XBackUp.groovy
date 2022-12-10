@@ -6,26 +6,26 @@ import java.lang.module.ModuleDescriptor
 class MyPlugin extends PluginMain {
     PluginLogger logger = null
 
+    HashMap<String, Object> defaultConfig = [
+            "slot1":"",
+            "slot2":"",
+            "slot3":""
+    ]
+
     @Override
     void onLoad(ServerInterface serverInterface) {
-        logger = serverInterface.getLogger()
-        logger.info("MyPlugin Loaded!")
-        logger.info("I HAVE A reverseString API Method!")
+        logger.info("XBackUp Loaded!")
     }
 
     @Override
     void onUnload(ServerInterface serverInterface) {
         logger = serverInterface.getLogger()
-        logger.info("MyPlugin Unloaded!")
+        logger.info("XBackUp Unloaded!")
     }
 
     @Override
     PluginMetadata getPluginMetadata() {
-        return new PluginMetadata("my_plugin", ModuleDescriptor.Version.parse("0.0.1"), "ZhuRuoLing")
+        return new PluginMetadata("xbu", ModuleDescriptor.Version.parse("0.0.1"), "ZhuRuoLing")
     }
 
-    @Api
-    String reverseString(String s){
-        return s.reverse()
-    }
 }

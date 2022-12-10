@@ -2,6 +2,7 @@ package net.zhuruoling.omms.crystal.plugin
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import net.zhuruoling.omms.crystal.command.CommandSourceStack
+import net.zhuruoling.omms.crystal.config.ConfigManager
 import net.zhuruoling.omms.crystal.event.Event
 import net.zhuruoling.omms.crystal.event.EventHandler
 import net.zhuruoling.omms.crystal.event.PluginEvent
@@ -42,5 +43,10 @@ class ServerInterface(private val pluginName: String) {
             if (!SharedConstants.pluginCommandTable[pluginName]!!.contains(commandSourceStackLiteralArgumentBuilder))
                 SharedConstants.pluginCommandTable[pluginName]!!.add(commandSourceStackLiteralArgumentBuilder)
         }
+    }
+
+    @Synchronized
+    fun getConfig(pluginId:String, createIfNotExist: Boolean = true, defaultConfig :MutableMap<String,Any>? = null):MutableMap<String,Any>{
+        return ConfigManager.getConfig(pluginId, createIfNotExist, defaultConfig)
     }
 }

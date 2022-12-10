@@ -1,18 +1,20 @@
 package net.zhuruoling.omms.crystal.main
 
-import net.zhuruoling.omms.crystal.permission.Permission
-import net.zhuruoling.omms.crystal.permission.PermissionManager
+import net.zhuruoling.omms.crystal.config.ConfigManager
+
+data class wdnmd(val string: String)
 
 
 fun main() {
-    PermissionManager.init()
-    PermissionManager.setPermission("wdnmd")
-    PermissionManager.setPermission("114514", Permission.ADMIN)
-    PermissionManager.writePermission()
-    println(PermissionManager.getPermission("wdnmd"))
-    println(PermissionManager.getPermission("114514"))
-    PermissionManager.setPermission("114514", Permission.USER)
-    println(PermissionManager.getPermission("114514"))
-    PermissionManager.forEach { player, _ -> PermissionManager.deletePlayer(player) }
-    PermissionManager.writePermission()
+    ConfigManager.init()
+    val defaultConfig: MutableMap<String, Any> = mutableMapOf("a" to "B", "c" to "D", "e" to 114514)
+    var wdnmd = ConfigManager.getConfig(pluginId = "wdnmd", createIfNotExist = true, defaultConfig = defaultConfig)
+    println(wdnmd)
+    ConfigManager.setConfigValue("wdnmd", "KKKK","ZZZZ")
+    wdnmd = ConfigManager.getConfig(pluginId = "wdnmd")
+    println(wdnmd)
+    ConfigManager.removeConfigKey("wdnmd", "KKKK")
+    wdnmd = ConfigManager.getConfig(pluginId = "wdnmd")
+    println(wdnmd)
+    //ConfigManager.getPluginConfig("wdnmd")
 }

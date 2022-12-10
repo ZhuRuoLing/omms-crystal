@@ -2,15 +2,15 @@ package net.zhuruoling.omms.crystal.main
 
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
-import net.zhuruoling.omms.crystal.console.ConsoleHandler
 import net.zhuruoling.omms.crystal.command.CommandSourceStack
+import net.zhuruoling.omms.crystal.console.ConsoleHandler
 import net.zhuruoling.omms.crystal.event.Event
 import net.zhuruoling.omms.crystal.event.EventDispatcher
 import net.zhuruoling.omms.crystal.event.EventHandler
 import net.zhuruoling.omms.crystal.event.EventLoop
 import net.zhuruoling.omms.crystal.server.ServerHandler
+import java.lang.reflect.Method
 import java.util.*
-import kotlin.collections.HashMap
 
 object SharedConstants {
     var serverHandler: ServerHandler? = null
@@ -21,6 +21,7 @@ object SharedConstants {
     val pluginEventTable: HashMap<String, HashMap<String, Event>> = hashMapOf()
     val pluginEventHandlerTable: HashMap<String, ArrayList<Pair<Event, EventHandler>>> = hashMapOf()
     var commandDispatcher = CommandDispatcher<CommandSourceStack>()
+    val pluginDeclaredApiMethodMap: HashMap<String, HashMap<Pair<String, MutableList<Class<*>>>, Method>> = hashMapOf()
 }
 
 object DebugOptions {
@@ -57,6 +58,5 @@ object DebugOptions {
 
     override fun toString(): String {
         return if (off) "OFF " else (if (allDebug()) "ALL " else ((if (eventDebug()) "EVENT " else "") + (if (mainDebug()) "MAIN " else "") + (if (pluginDebug()) "PLUGIN " else "") + (if (serverDebug()) "SERVER " else "")))
-
     }
 }

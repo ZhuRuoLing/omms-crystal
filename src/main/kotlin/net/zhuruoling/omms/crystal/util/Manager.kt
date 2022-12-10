@@ -32,7 +32,8 @@ open class Manager<T, K>(
                     val pair = initializer(it.absolutePathString())
                     map[pair.first] = pair.second
                 } catch (e: Exception) {
-                    logger.error("Cannot execute `initializer` because an exception occurred.", e)
+                    logger.error("Cannot execute `initializer` because an exception occurred.")
+                    e.printStackTrace()
                 }
             }
         }

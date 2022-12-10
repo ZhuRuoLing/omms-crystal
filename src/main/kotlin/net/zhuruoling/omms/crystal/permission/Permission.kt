@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils
 import java.io.File
 import java.nio.charset.Charset
 import java.nio.file.Files
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.Path
 
@@ -31,17 +32,17 @@ data class PermissionStorage(
 )
 
 enum class Permission {
-    OWNER, ADMIN, USER, GUEST
+    OWNER, ADMIN, USER, GUEST;
 }
 
 object PermissionManager {
     val gson = GsonBuilder().serializeNulls().create()
-    val permissionMap:ConcurrentHashMap<String, Permission> = ConcurrentHashMap<String, Permission>()
+    val permissionMap: ConcurrentHashMap<String, Permission> = ConcurrentHashMap<String, Permission>()
     private var defaultPermissionLevel = Permission.USER
     val filePath = joinFilePaths("permissions.json")
+
     @Synchronized
     fun init() {
-        println(filePath)
         if (!FileUtil.exist(filePath)) {
             Files.createFile(Path(filePath))
             FileUtils.write(File(filePath), defaultPermissionFileContent, Charset.defaultCharset())
@@ -78,8 +79,20 @@ object PermissionManager {
         permissionMap.forEach { (t, u) -> function(t, u) }
     }
 
+    fun playerExists(player: String): Boolean {
+        return permissionMap.containsKey(player)
+    }
+
     @Synchronized
     fun writePermission() {
+        val permissionStorage = convertToPermissionStorage()
+        val writer = java.io.FileWriter(filePath, false)
+        gson.toJson(permissionStorage, writer)
+        writer.flush()
+        writer.close()
+    }
+
+    fun convertToPermissionStorage(): PermissionStorage {
         val defaultPermissionLevel: Permission = defaultPermissionLevel
         val owner: ArrayList<String> = arrayListOf()
         val admin: ArrayList<String> = arrayListOf()
@@ -108,15 +121,28 @@ object PermissionManager {
         user.sort()
         admin.sort()
         guest.sort()
-        val permissionStorage = PermissionStorage(defaultPermissionLevel, owner, admin, user, guest)
-        val writer = java.io.FileWriter(filePath, false)
-        gson.toJson(permissionStorage, writer)
-        writer.flush()
-        writer.close()
+        return PermissionStorage(defaultPermissionLevel, owner, admin, user, guest)
     }
 
     @Synchronized
     fun getPermission(player: String): Permission {
         return permissionMap[player] ?: defaultPermissionLevel
     }
+}
+
+//level compare a > b : true
+//else false
+fun comparePermission(a: Permission, b: Permission): Boolean =
+    toIntegerPermissionLevel(a) >= toIntegerPermissionLevel(b)
+
+fun toIntegerPermissionLevel(permission: Permission): Int = when (permission) {
+    Permission.OWNER -> 4
+    Permission.ADMIN -> 3
+    Permission.USER -> 2
+    Permission.GUEST -> 1
+}
+
+
+fun reslovePermissionLevel(name: String): Permission {
+    return Permission.valueOf(name.uppercase(Locale.getDefault()))
 }
