@@ -1,46 +1,138 @@
 package net.zhuruoling.omms.crystal.text
 
-class Color {
 
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
+
+enum class Color {
+    black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple, gold, gray, dark_gray, blue, green, aqua, red, light_purple, yellow, white, reset
 }
 
-
-abstract class Text {
-    abstract var literalString: String
-    abstract val compoentText: List<out Text>
-    abstract var style: Style
-    abstract fun toRawString(): String
-    abstract fun withStyle(style: Style): Text
+enum class ClickAction {
+    open_url, open_file, run_command, suggest_command, change_page, copy_to_clipboard
 }
 
-class LiteralText private constructor(override var literalString: String = "") : Text() {
+enum class HoverAction {
+    show_text, show_item, show_entity
+}
 
-    companion object {
-        fun of(content: String): Text {
-            return LiteralText(content)
-        }
+data class Entity(val name:String, val type:String, val uuid: String)
 
-        fun join(list: List<Text>, separator: Text) {
-            TODO("Not yet implemented")
-        }
-    }
+data class Item(val id:String, val count:Int, val tag: String)
 
-    override val compoentText: List<Text> = mutableListOf()
-    override var style: Style = Style.empty
+data class ClickEvent(val action: ClickAction, val value: String)
 
-    override fun toRawString(): String {
-        return literalString
-    }
+data class HoverEvent(val action: HoverAction, val contents: Any? = null, val value: Any? = null)
 
-    override fun withStyle(style: Style): Text {
+
+class Text private constructor(
+    private var text: String,
+    private var extra: MutableList<Text>? = null,
+    private var color: Color? = null,
+    private var font: String? = null,
+    private var bold: Boolean? = null,
+    private var italic: Boolean? = null,
+    private var underlined: Boolean? = null,
+    private var strikethrough: Boolean? = null,
+    private var obfuscated: Boolean? = null,
+    private var insertion: String? = null,
+    @SerializedName("clickEvent")
+    private var clickEvent: ClickEvent? = null,
+    @SerializedName("hoverEvent")
+    private var hoverEvent: HoverEvent? = null,
+) {
+
+    fun withColor(color: Color):Text {
+        this.color = color
         return this
     }
 
+    fun withFont(font: String?):Text {
+        this.font = font
+        return this
+    }
 
-}
+    fun withbold(bold: Boolean?):Text {
+        this.bold = bold
+        return this
+    }
 
-class Style private constructor() {
+    fun withItalic(italic: Boolean?):Text {
+        this.italic = italic
+        return this
+    }
+
+    fun withUnderlined(underlined: Boolean?):Text {
+        this.underlined = underlined
+        return this
+    }
+
+    fun withStrikethrough(strikethrough: Boolean?):Text {
+        this.strikethrough = strikethrough
+        return this
+    }
+
+    fun withObfuscated(obfuscated: Boolean?):Text {
+        this.obfuscated = obfuscated
+        return this
+    }
+
+    fun withInsertion(insertion: String?):Text {
+        this.insertion = insertion
+        return this
+    }
+
+    fun withClickEvent(clickEvent: ClickEvent?):Text {
+        this.clickEvent = clickEvent
+        return this
+    }
+
+    fun withHoverEvent(hoverEvent: HoverEvent?):Text {
+        this.hoverEvent = hoverEvent
+        return this
+    }
+
+    fun withExtra(extra: MutableList<Text>?):Text{
+        this.extra = extra
+        return this
+    }
+
+    fun toRawString():String = text
+
     companion object {
-        val empty: Style = Style()
+        fun of(raw: String): Text {
+            return Text(raw)
+        }
     }
 }
+
+class TextGroup private constructor(){
+    private var texts: MutableList<Text> = mutableListOf()
+
+    fun getTexts():MutableList<Text> = texts
+
+    fun toRawString():String{
+        val res = StringBuilder()
+        texts.forEach {
+            res.append(it.toRawString())
+        }
+        return res.toString()
+    }
+
+    constructor(vararg text: Text) : this() {
+        this.texts = mutableListOf(*text)
+    }
+}
+
+object TextSerializer {
+    private val gson = GsonBuilder().create()
+    fun serialize(text: Text): String {
+        return gson.toJson(text)
+    }
+
+    fun serialize(textGroup: TextGroup):String{
+        return gson.toJson(textGroup.getTexts())
+    }
+}
+
+

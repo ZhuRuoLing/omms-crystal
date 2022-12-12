@@ -83,6 +83,7 @@ fun init() {
 
 
 fun main(args: Array<String>) {
+    println("Starting net.zhuruoling.omms.crystal.main.MainKt.main()")
     consoleHandler = ConsoleHandler()
     consoleHandler.start()
     val logger = createLogger("Main")

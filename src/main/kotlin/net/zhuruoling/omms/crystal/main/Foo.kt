@@ -1,20 +1,28 @@
 package net.zhuruoling.omms.crystal.main
 
 import net.zhuruoling.omms.crystal.config.ConfigManager
-
-data class wdnmd(val string: String)
-
+import net.zhuruoling.omms.crystal.text.*
 
 fun main() {
-    ConfigManager.init()
-    val defaultConfig: MutableMap<String, Any> = mutableMapOf("a" to "B", "c" to "D", "e" to 114514)
-    var wdnmd = ConfigManager.getConfig(pluginId = "wdnmd", createIfNotExist = true, defaultConfig = defaultConfig)
-    println(wdnmd)
-    ConfigManager.setConfigValue("wdnmd", "KKKK","ZZZZ")
-    wdnmd = ConfigManager.getConfig(pluginId = "wdnmd")
-    println(wdnmd)
-    ConfigManager.removeConfigKey("wdnmd", "KKKK")
-    wdnmd = ConfigManager.getConfig(pluginId = "wdnmd")
-    println(wdnmd)
+    val text = Text.of("wdnmd")
+        .withColor(Color.aqua)
+        .withItalic(true)
+        .withHoverEvent(
+            HoverEvent(
+                HoverAction.show_text,
+                value = Text.of("wdnmd")
+                    .withColor(Color.green)
+            )
+        )
+    println(TextSerializer.serialize(text))
+    val textGroup = TextGroup(
+        text, text.withColor(Color.yellow) , text.withClickEvent(
+            ClickEvent(
+                ClickAction.suggest_command,
+                "/say wdnmd"
+            )
+        )
+    )
+    println(TextSerializer.serialize(textGroup))
     //ConfigManager.getPluginConfig("wdnmd")
 }
