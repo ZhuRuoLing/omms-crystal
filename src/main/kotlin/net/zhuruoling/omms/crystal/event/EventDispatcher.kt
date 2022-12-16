@@ -23,7 +23,11 @@ class EventDispatcher {
             handlers.forEach {
                 try {
                     executor.submit {
-                        it(args)
+                        try {
+                            it(args)
+                        }catch (e:Exception){
+                            logger.error("An Exception occurred while dispatching events.", e)
+                        }
                     }
                 } catch (e: Exception) {
                     logger.error("An Exception occurred while dispatching events.", e)

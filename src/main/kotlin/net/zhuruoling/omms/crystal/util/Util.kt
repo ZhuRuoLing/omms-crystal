@@ -11,19 +11,12 @@ import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
 import ch.qos.logback.core.util.FileSize
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
-import com.mojang.brigadier.tree.ArgumentCommandNode
-import com.mojang.brigadier.tree.CommandNode
-import com.mojang.brigadier.tree.LiteralCommandNode
-import com.mojang.brigadier.tree.RootCommandNode
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.io.File
+import java.lang.reflect.Method
 import java.util.*
-import java.util.function.BinaryOperator
 import java.util.function.Consumer
-import java.util.function.Function
-import java.util.function.Supplier
-import java.util.stream.Collectors
 
 
 const val PRODUCT_NAME = "Oh My Minecraft Server Crystal"
@@ -119,4 +112,5 @@ fun createLoggerWithPattern(
 
 fun <S> unregisterCommand(command: LiteralArgumentBuilder<S>, dispatcher: CommandDispatcher<S>): String? =
     CommandUtil.unRegisterCommand(command, dispatcher)
+
 

@@ -66,5 +66,6 @@ public class CommandUtil {
 
     void foo(){
         Class<? extends String> clazz = null;
+
     }
 }

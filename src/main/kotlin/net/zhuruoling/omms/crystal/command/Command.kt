@@ -20,7 +20,7 @@ import net.zhuruoling.omms.crystal.permission.reslovePermissionLevel
 import net.zhuruoling.omms.crystal.util.createLogger
 
 
-private fun literal(literal: String): LiteralArgumentBuilder<CommandSourceStack> {
+fun literal(literal: String): LiteralArgumentBuilder<CommandSourceStack> {
     return LiteralArgumentBuilder.literal(literal)
 }
 
@@ -28,27 +28,27 @@ private fun <T> argument(name: String, type: ArgumentType<T>): RequiredArgumentB
     return RequiredArgumentBuilder.argument(name, type)
 }
 
-private fun integerArgument(name: String): RequiredArgumentBuilder<CommandSourceStack, Int> {
+fun integerArgument(name: String): RequiredArgumentBuilder<CommandSourceStack, Int> {
     return argument(name, IntegerArgumentType.integer())
 }
 
-private fun wordArgument(name: String): RequiredArgumentBuilder<CommandSourceStack, String> {
+fun wordArgument(name: String): RequiredArgumentBuilder<CommandSourceStack, String> {
     return argument(name, StringArgumentType.word())
 }
 
-private fun greedyStringArgument(name: String): RequiredArgumentBuilder<CommandSourceStack, String> {
+fun greedyStringArgument(name: String): RequiredArgumentBuilder<CommandSourceStack, String> {
     return argument(name, StringArgumentType.greedyString())
 }
 
-private fun getWord(context: CommandContext<CommandSourceStack>, name: String): String {
+fun getWord(context: CommandContext<CommandSourceStack>, name: String): String {
     return StringArgumentType.getString(context, name)
 }
 
-private fun getInteger(context: CommandContext<CommandSourceStack>, name: String): Int {
+fun getInteger(context: CommandContext<CommandSourceStack>, name: String): Int {
     return IntegerArgumentType.getInteger(context, name)
 }
 
-val helpCommand = literal("help").then(
+val helpCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.commandPrefix + "help").then(
     integerArgument("page")
         .executes {
             1
@@ -57,7 +57,7 @@ val helpCommand = literal("help").then(
     1
 }
 
-val permissionCommand = literal("permission").then(
+val permissionCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.commandPrefix + "permission").then(
     literal("set").then(
         wordArgument("player")
             .then(
@@ -119,7 +119,7 @@ val permissionCommand = literal("permission").then(
     }
 )
 
-val startCommand = literal("start").requires {
+val startCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.commandPrefix + "start").requires {
     if (it.from == CommandSource.PLAYER)
         comparePermission(it.permissionLevel!!, Permission.ADMIN)
     else
@@ -132,7 +132,7 @@ val startCommand = literal("start").requires {
     1
 }
 
-val stopCommand = literal("stop").then(
+val stopCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.commandPrefix + "stop").then(
     argument("force", BoolArgumentType.bool()).requires {
         if (it.from == CommandSource.PLAYER)
             comparePermission(it.permissionLevel!!, Permission.ADMIN)
@@ -146,7 +146,7 @@ val stopCommand = literal("stop").then(
                     CommandSource.PLAYER -> it.source.player!!
                     CommandSource.PLUGIN -> "plugin"
                     CommandSource.CENTRAL -> "central"
-                    else -> "crystal"
+                    CommandSource.CONSOLE -> "console"
                 },
                 BoolArgumentType.getBool(it, "force")
             )
@@ -167,7 +167,7 @@ val stopCommand = literal("stop").then(
                     CommandSource.PLAYER -> it.source.player!!
                     CommandSource.PLUGIN -> "plugin"
                     CommandSource.CENTRAL -> "central"
-                    else -> "crystal"
+                    CommandSource.CONSOLE -> "console"
                 },
                 false
             )
@@ -175,7 +175,7 @@ val stopCommand = literal("stop").then(
         1
     }
 
-val pluginCommand = literal("plugin")
+val pluginCommand = literal(Config.commandPrefix + "plugin")
 
 
 

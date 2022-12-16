@@ -11,6 +11,7 @@ import net.zhuruoling.omms.crystal.event.EventLoop
 import net.zhuruoling.omms.crystal.server.ServerHandler
 import java.lang.reflect.Method
 import java.util.*
+import kotlin.collections.HashMap
 
 object SharedConstants {
     var serverHandler: ServerHandler? = null
@@ -22,6 +23,7 @@ object SharedConstants {
     val pluginEventHandlerTable: HashMap<String, ArrayList<Pair<Event, EventHandler>>> = hashMapOf()
     var commandDispatcher = CommandDispatcher<CommandSourceStack>()
     val pluginDeclaredApiMethodMap: HashMap<String, HashMap<Pair<String, MutableList<Class<*>>>, Method>> = hashMapOf()
+    val pluginDeclaredEventHandlerMap: HashMap<String, HashMap<Event, EventHandler>> = hashMapOf()
 }
 
 object DebugOptions {

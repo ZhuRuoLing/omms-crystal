@@ -1,5 +1,7 @@
 import net.zhuruoling.omms.crystal.plugin.*
 import net.zhuruoling.omms.crystal.plugin.api.*
+import net.zhuruoling.omms.crystal.plugin.api.annotations.*
+import net.zhuruoling.omms.crystal.event.*
 
 import java.lang.module.ModuleDescriptor
 
@@ -27,5 +29,9 @@ class MyPlugin extends PluginMain {
     @Api
     String reverseString(String s){
         return s.reverse()
+    }
+    @net.zhuruoling.omms.crystal.plugin.api.annotations.EventListener(event = "crystal.server.overload")
+    void serverOverloadEventHandler(ServerInterface serverInterface, ServerOverloadEventArgs eventArgs){
+
     }
 }

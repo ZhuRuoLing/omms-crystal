@@ -12,9 +12,14 @@ class MyPlugin extends PluginMain {
             "slot3":""
     ]
 
+    HashMap<String,Object> config = new HashMap<>()
+
     @Override
     void onLoad(ServerInterface serverInterface) {
+        logger = serverInterface.getLogger()
         logger.info("XBackUp Loaded!")
+        config = serverInterface.loadConfig(true, defaultConfig)
+
     }
 
     @Override

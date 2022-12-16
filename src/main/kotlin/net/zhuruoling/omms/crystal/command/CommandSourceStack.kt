@@ -2,6 +2,7 @@ package net.zhuruoling.omms.crystal.command
 
 import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.permission.Permission
+import net.zhuruoling.omms.crystal.permission.PermissionManager
 import net.zhuruoling.omms.crystal.text.TextGroup
 import net.zhuruoling.omms.crystal.text.TextSerializer
 import net.zhuruoling.omms.crystal.util.createLogger
@@ -12,7 +13,7 @@ enum class CommandSource{
 
 private val logger = createLogger("CommandSourceStack")
 
-class CommandSourceStack(val from: CommandSource, val player: String?, val permissionLevel: Permission?)
+class CommandSourceStack(val from: CommandSource, val player: String? = null, val permissionLevel: Permission? = null)
 {
     fun sendFeedBack(text: TextGroup){
         when(from){

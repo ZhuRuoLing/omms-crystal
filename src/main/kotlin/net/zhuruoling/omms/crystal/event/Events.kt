@@ -1,5 +1,6 @@
 package net.zhuruoling.omms.crystal.event
 
+import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.parser.Info
 import net.zhuruoling.omms.crystal.plugin.PluginInstance
 import net.zhuruoling.omms.crystal.plugin.ServerInterface
@@ -78,7 +79,7 @@ class ServerStartingEventArgs(val pid: Long, val version: String) : EventArgs() 
 }
 
 object ServerStartedEvent : Event("crystal.server.started", 1000)
-class ServerStartedEventArgs(val timeUsed:Double) : EventArgs()
+class ServerStartedEventArgs(val timeUsed: Double) : EventArgs()
 
 object ServerStopEvent : Event("crystal.server.stop", 1000)
 class ServerStopEventArgs(val id: String, val force: Boolean) : EventArgs() {
@@ -97,10 +98,8 @@ class ServerStoppedEventArgs(val retValue: Int, val who: String) : EventArgs() {
     }
 }
 
-object ServerOverloadEvent: Event("crystal.server.overload", 100);
-class ServerOverloadEventArgs(val ticks: Long, val time:Long): EventArgs()
-
-
+object ServerOverloadEvent : Event("crystal.server.overload", 100);
+class ServerOverloadEventArgs(val ticks: Long, val time: Long) : EventArgs()
 
 
 //player
@@ -172,4 +171,34 @@ class ConsoleInputEventArgs(val content: String) : EventArgs() {
     override fun toString(): String {
         return "ConsoleInputEventArgs(content='$content')"
     }
+}
+
+val eventMap = hashMapOf<String, Event>()
+
+fun registerEvents(){
+    eventMap.run {
+        this["crystal.server.info"] = ServerInfoEvent
+        this["crystal.server.start"] = ServerStartEvent
+        this["crystal.server.starting"] = ServerStartingEvent
+        this["crystal.server.started"] = ServerStartedEvent
+        this["crystal.server.stop"] = ServerStopEvent
+        this["crystal.server.stopping"] = ServerStoppingEvent
+        this["crystal.server.stopped"] = ServerStoppedEvent
+        this["crystal.server.overload"] = ServerOverloadEvent
+        this["crystal.server.player.info"] = PlayerInfoEvent
+        this["crystal.server.player.join"] = PlayerJoinEvent
+        this["crystal.server.player.left"] = PlayerLeftEvent
+    }
+}
+
+fun getEventById(id: String): Event {
+    var event: Event
+
+    SharedConstants.pluginEventTable.values.forEach {
+        if (it.containsKey(id)) {
+            event = it[id]!!
+            return event
+        }
+    }
+    throw IllegalArgumentException("Illegal event id!")
 }

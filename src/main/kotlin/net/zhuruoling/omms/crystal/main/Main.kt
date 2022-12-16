@@ -5,7 +5,6 @@ import net.zhuruoling.omms.crystal.config.Config
 import net.zhuruoling.omms.crystal.config.ConfigManager
 import net.zhuruoling.omms.crystal.console.ConsoleHandler
 import net.zhuruoling.omms.crystal.event.*
-import net.zhuruoling.omms.crystal.main.SharedConstants.commandDispatcher
 import net.zhuruoling.omms.crystal.main.SharedConstants.consoleHandler
 import net.zhuruoling.omms.crystal.main.SharedConstants.eventDispatcher
 import net.zhuruoling.omms.crystal.main.SharedConstants.eventLoop
@@ -15,8 +14,12 @@ import net.zhuruoling.omms.crystal.plugin.PluginManager
 import net.zhuruoling.omms.crystal.server.ServerHandler
 import net.zhuruoling.omms.crystal.util.PRODUCT_NAME
 import net.zhuruoling.omms.crystal.util.createLogger
+import net.zhuruoling.omms.crystal.util.joinFilePaths
 import java.lang.management.ManagementFactory
+import java.nio.file.Files
 import kotlin.concurrent.thread
+import kotlin.io.path.Path
+import kotlin.system.exitProcess
 
 
 fun exit() {
@@ -30,9 +33,10 @@ fun exit() {
     }
 }
 
+
 fun init() {
     val logger = createLogger("EventHandler")
-    commandDispatcher.run {
+    CommandManager.run {
         register(helpCommand)
         register(permissionCommand)
         register(startCommand)
@@ -72,9 +76,9 @@ fun init() {
             it as ServerStartingEventArgs
             logger.info("Server is running at pid ${it.pid}")
         }
-        registerHandler(PlayerJoinEvent){
+        registerHandler(PlayerJoinEvent) {
             it as PlayerJoinEventArgs
-            if (!PermissionManager.playerExists(it.player)){
+            if (!PermissionManager.playerExists(it.player)) {
                 PermissionManager.setPermission(it.player)
             }
         }
@@ -86,6 +90,7 @@ fun main(args: Array<String>) {
     println("Starting net.zhuruoling.omms.crystal.main.MainKt.main()")
     consoleHandler = ConsoleHandler()
     consoleHandler.start()
+    registerEvents()
     val logger = createLogger("Main")
     logger.info("Hello World!")
     val os = ManagementFactory.getOperatingSystemMXBean()
@@ -102,7 +107,10 @@ fun main(args: Array<String>) {
     if (Config.load()) {
         logger.warn("First startup detected.")
         logger.warn("You may fill the config file to continue.")
-        return
+        if (Files.exists(Path(joinFilePaths("server"))) || !Files.isDirectory(Path(joinFilePaths("server")))) {
+            Files.createDirectory(Path(joinFilePaths("server")))
+        }
+        exitProcess(1)
     }
     if (DebugOptions.mainDebug()) {
         logger.info("Config:")
@@ -120,6 +128,7 @@ fun main(args: Array<String>) {
     PluginManager.init()
     PermissionManager.init()
     PluginManager.loadAll()
+    consoleHandler.reload()
     eventLoop.dispatch(ServerStartEvent, ServerStartEventArgs(Config.launchCommand, Config.serverWorkingDirectory))
 }
 

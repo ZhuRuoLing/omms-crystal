@@ -1,7 +1,12 @@
 package net.zhuruoling.omms.crystal.plugin
 
 import groovy.lang.GroovyClassLoader
-import net.zhuruoling.omms.crystal.plugin.api.Api
+import net.zhuruoling.omms.crystal.event.Event
+import net.zhuruoling.omms.crystal.event.EventHandler
+import net.zhuruoling.omms.crystal.event.getEventById
+import net.zhuruoling.omms.crystal.main.SharedConstants
+import net.zhuruoling.omms.crystal.plugin.api.annotations.Api
+import net.zhuruoling.omms.crystal.util.PluginUtil
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import java.io.File
@@ -30,17 +35,33 @@ open class GroovyPluginInstance(private val pluginFilePath: String) {
             throw FileNotFoundException("The specified plugin file $pluginFilePath does not exist.")
         }
         try {
-            val clazz = groovyClassLoader.parseClass(File(pluginFilePath))
+            val clazz = groovyClassLoader.parseClass(File(pluginFilePath)) as Class<out PluginMain>
             this.instance = clazz.getDeclaredConstructor().newInstance() as PluginMain
             this.metadata = instance.getPluginMetadata()
-            clazz.declaredMethods.forEach {
-                if (it.annotations.contains(Api())) {
+            clazz.declaredMethods.forEach { it ->
+                val list = mutableMapOf<Class<out Annotation>, Annotation>()
+                for (annotation in it.annotations) {
+                    list[annotation::class.java] = annotation
+                }
+
+                if (list.containsKey(Api::class.java)) { //api method
                     val parameters = mutableListOf<Class<*>>()
                     it.parameters.forEach { parameter ->
                         parameters.add(parameter.type)
                     }
                     apiMethods[Pair<String, MutableList<Class<*>>>(it.name, parameters)] = it
                 }
+                val eventHandlerMap = PluginUtil.getPluginDeclaredEventHandlerMethod(clazz)
+                val map = hashMapOf<Event, EventHandler>()
+                eventHandlerMap.forEach { p ->
+                    map[getEventById(p.key)] = { args ->
+                        p.value(this.instance,ServerInterface(this.metadata.id!!) ,args)
+                    }
+                }
+                map.forEach {
+                    SharedConstants.eventDispatcher.registerHandler(it.key,it.value)
+                }
+                SharedConstants.pluginDeclaredEventHandlerMap[metadata.id!!] = map
             }
             clazz.declaredClasses.forEach {
                 if (it.annotations.contains(Api())) {
