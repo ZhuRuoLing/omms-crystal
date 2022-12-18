@@ -1,6 +1,5 @@
 package net.zhuruoling.omms.crystal.plugin.api
 
-import cn.hutool.core.util.ReflectUtil
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
@@ -12,7 +11,6 @@ import net.zhuruoling.omms.crystal.permission.PermissionManager
 import net.zhuruoling.omms.crystal.plugin.PluginManager
 import org.apache.commons.io.FileUtils
 import java.io.File
-import kotlin.reflect.jvm.internal.impl.descriptors.runtime.structure.ReflectClassUtilKt
 
 
 object PlayerUtil {
@@ -78,7 +76,7 @@ object PluginUtil {
         }
         val method = methods[Pair(methodName, argTypes)]
             ?: throw NoSuchMethodException("Method $methodName with args $argTypes does not exist.")
-        return method(PluginManager.getPluginInstance(pluginId)!!.pluginInstance.instance, *args)
+        return method(PluginManager.getPluginInstance(pluginId)!!.pluginInstance.pluginMain, *args)
     }
 }
 

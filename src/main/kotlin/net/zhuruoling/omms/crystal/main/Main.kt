@@ -1,5 +1,6 @@
 package net.zhuruoling.omms.crystal.main
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException
 import net.zhuruoling.omms.crystal.command.*
 import net.zhuruoling.omms.crystal.config.Config
 import net.zhuruoling.omms.crystal.config.ConfigManager
@@ -12,6 +13,9 @@ import net.zhuruoling.omms.crystal.main.SharedConstants.serverHandler
 import net.zhuruoling.omms.crystal.permission.PermissionManager
 import net.zhuruoling.omms.crystal.plugin.PluginManager
 import net.zhuruoling.omms.crystal.server.ServerHandler
+import net.zhuruoling.omms.crystal.text.Color
+import net.zhuruoling.omms.crystal.text.Text
+import net.zhuruoling.omms.crystal.text.TextGroup
 import net.zhuruoling.omms.crystal.util.PRODUCT_NAME
 import net.zhuruoling.omms.crystal.util.createLogger
 import net.zhuruoling.omms.crystal.util.joinFilePaths
@@ -31,6 +35,7 @@ fun exit() {
         eventDispatcher.shutdown()
         consoleHandler.interrupt()
     }
+
 }
 
 
@@ -46,7 +51,7 @@ fun init() {
     eventDispatcher.run {
         registerHandler(ServerStoppedEvent) {
             it as ServerStoppedEventArgs
-            logger.info("Server exited with return value ${it.retValue}")
+            logger.info("Server exited with return value ${it.retValue} (who=${it.who})")
             serverHandler = null
             if (it.who == "crystal") {
                 logger.info("Bye.")
@@ -62,7 +67,6 @@ fun init() {
             }
         }
         registerHandler(ServerStartEvent) {
-
             val args = (it as ServerStartEventArgs)
             if (serverHandler != null) {
                 logger.warn("Server already running!")
@@ -82,9 +86,30 @@ fun init() {
                 PermissionManager.setPermission(it.player)
             }
         }
+        registerHandler(PlayerInfoEvent){
+            it as PlayerInfoEventArgs
+            if (it.content.startsWith(Config.commandPrefix)){
+                val commandSourceStack = CommandSourceStack(CommandSource.PLAYER, it.player, PermissionManager.getPermission(it.player))
+                try {
+                    CommandManager.execute(it.content,commandSourceStack)
+                }catch (e:CommandSyntaxException){
+                    e.printStackTrace()
+                    commandSourceStack.sendFeedBack(TextGroup(
+                        Text("Incomplete or invalid command, see errors below:\n").withColor(Color.red),
+                        Text(e.rawMessage.string).withColor(Color.red)
+                    ))
+                }
+                catch (e:Exception){
+                    e.printStackTrace()
+                    commandSourceStack.sendFeedBack(TextGroup(
+                        Text("Unexpected error occurred while executing command.:\n").withColor(Color.red),
+                        Text(e.message!!).withColor(Color.red)
+                    ))
+                }
+            }
+        }
     }
 }
-
 
 fun main(args: Array<String>) {
     println("Starting net.zhuruoling.omms.crystal.main.MainKt.main()")

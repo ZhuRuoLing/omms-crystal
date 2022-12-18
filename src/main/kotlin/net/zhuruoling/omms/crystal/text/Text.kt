@@ -25,7 +25,7 @@ data class ClickEvent(val action: ClickAction, val value: String)
 data class HoverEvent(val action: HoverAction, val contents: Any? = null, val value: Any? = null)
 
 
-class Text private constructor(
+class Text constructor(
     private var text: String,
     private var extra: MutableList<Text>? = null,
     private var color: Color? = null,
@@ -41,6 +41,7 @@ class Text private constructor(
     @SerializedName("hoverEvent")
     private var hoverEvent: HoverEvent? = null,
 ) {
+    constructor(text: String) : this(text,null)
 
     fun withColor(color: Color):Text {
         this.color = color
@@ -98,12 +99,6 @@ class Text private constructor(
     }
 
     fun toRawString():String = text
-
-    companion object {
-        fun of(raw: String): Text {
-            return Text(raw)
-        }
-    }
 }
 
 class TextGroup private constructor(){

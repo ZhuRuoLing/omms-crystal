@@ -175,7 +175,7 @@ class ConsoleInputEventArgs(val content: String) : EventArgs() {
 
 val eventMap = hashMapOf<String, Event>()
 
-fun registerEvents(){
+fun registerEvents() {
     eventMap.run {
         this["crystal.server.info"] = ServerInfoEvent
         this["crystal.server.start"] = ServerStartEvent
@@ -192,13 +192,16 @@ fun registerEvents(){
 }
 
 fun getEventById(id: String): Event {
-    var event: Event
-
-    SharedConstants.pluginEventTable.values.forEach {
-        if (it.containsKey(id)) {
-            event = it[id]!!
-            return event
+    if (eventMap.containsKey(id)) {
+        return eventMap[id]!!
+    } else {
+        var event: Event
+        SharedConstants.pluginEventTable.values.forEach {
+            if (it.containsKey(id)) {
+                event = it[id]!!
+                return event
+            }
         }
+        throw IllegalArgumentException("Illegal event id!")
     }
-    throw IllegalArgumentException("Illegal event id!")
 }

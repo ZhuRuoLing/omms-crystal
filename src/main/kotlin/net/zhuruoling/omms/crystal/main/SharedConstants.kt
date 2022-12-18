@@ -20,7 +20,6 @@ object SharedConstants {
     lateinit var consoleHandler: ConsoleHandler
     val pluginCommandTable: HashMap<String, ArrayList<LiteralArgumentBuilder<CommandSourceStack>>> = hashMapOf()
     val pluginEventTable: HashMap<String, HashMap<String, Event>> = hashMapOf()
-    val pluginEventHandlerTable: HashMap<String, ArrayList<Pair<Event, EventHandler>>> = hashMapOf()
     var commandDispatcher = CommandDispatcher<CommandSourceStack>()
     val pluginDeclaredApiMethodMap: HashMap<String, HashMap<Pair<String, MutableList<Class<*>>>, Method>> = hashMapOf()
     val pluginDeclaredEventHandlerMap: HashMap<String, HashMap<Event, EventHandler>> = hashMapOf()

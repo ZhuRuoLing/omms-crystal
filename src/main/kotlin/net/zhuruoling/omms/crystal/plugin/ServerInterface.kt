@@ -6,22 +6,15 @@ import net.zhuruoling.omms.crystal.config.Config
 import net.zhuruoling.omms.crystal.config.ConfigManager
 import net.zhuruoling.omms.crystal.event.*
 import net.zhuruoling.omms.crystal.main.SharedConstants
+import net.zhuruoling.omms.crystal.text.Text
+import net.zhuruoling.omms.crystal.text.TextGroup
+import net.zhuruoling.omms.crystal.text.TextSerializer
 
 class ServerInterface(private val pluginName: String) {
     private val logger: PluginLogger = PluginLogger(pluginName)
 
     fun getLogger():PluginLogger{
         return logger
-    }
-
-    @Synchronized
-    fun registerEventHandler(e: Event, handler: EventHandler) {
-        SharedConstants.eventDispatcher.registerHandler(e, handler)
-        if (SharedConstants.pluginEventHandlerTable[pluginName] == null) {
-            SharedConstants.pluginEventHandlerTable[pluginName] = arrayListOf(Pair(e, handler))
-        } else {
-            SharedConstants.pluginEventHandlerTable[pluginName]!!.add(Pair(e, handler))
-        }
     }
 
     @Synchronized
@@ -55,31 +48,60 @@ class ServerInterface(private val pluginName: String) {
         return ConfigManager.getConfig(pluginName, createIfNotExist, defaultConfig)
     }
 
-
     @Synchronized
     fun startServer(): Boolean {
-        if (SharedConstants.serverHandler == null) {
+        return if (SharedConstants.serverHandler == null) {
             SharedConstants.eventLoop.dispatch(
                 ServerStartEvent, ServerStartEventArgs(
                     Config.launchCommand, Config.serverWorkingDirectory
                 )
             )
-            return true
+            true
         } else {
             logger.warn("Server is running!")
-            return false
+            false
         }
     }
 
     @Synchronized
     fun stopServer(force: Boolean = false): Boolean {
-        if (SharedConstants.serverHandler == null) {
+        return if (SharedConstants.serverHandler == null) {
             logger.warn("Server is not running")
-            return false
+            false
         } else {
             SharedConstants.eventLoop.dispatch(ServerStopEvent, ServerStopEventArgs(pluginName, force))
-            return true
+            true
         }
+    }
+
+    @Synchronized
+    fun broadcast(text:Text, player:String){
+        SharedConstants.serverHandler?.input("tellraw $player ${TextSerializer.serialize(text)}")
+    }
+
+    @Synchronized
+    fun broadcast(text:TextGroup, player:String){
+        SharedConstants.serverHandler?.input("tellraw $player ${TextSerializer.serialize(text)}")
+    }
+
+    @Synchronized
+    fun broadcast(text:String, player:String){
+        SharedConstants.serverHandler?.input("tellraw $player ${TextSerializer.serialize(Text(text))}")
+    }
+
+    @Synchronized
+    fun broadcast(text:Text){
+        SharedConstants.serverHandler?.input("tellraw @a ${TextSerializer.serialize(text)}")
+    }
+
+    @Synchronized
+    fun broadcast(text:TextGroup){
+        SharedConstants.serverHandler?.input("tellraw @a ${TextSerializer.serialize(text)}")
+    }
+
+    @Synchronized
+    fun broadcast(text:String){
+        SharedConstants.serverHandler?.input("tellraw @a ${TextSerializer.serialize(Text(text))}")
     }
 
 

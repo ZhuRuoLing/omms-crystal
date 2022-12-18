@@ -30,6 +30,16 @@ object PluginManager : Manager<String, PluginInstance>(
             logger.info("Plugin metadata of $it is ${instance.metadata}")
         }
         val pair = Pair(instance.metadata.id!!, PluginInstance(instance.metadata.id!!, instance))
+
+        if (DebugOptions.pluginDebug()) {
+            logger.info("Registering plugin ${instance.metadata.id} declared api methods:")
+            instance.apiMethods.forEach { (_, method) ->
+                logger.info("\tPlugin ${instance.metadata.id} declared method: ${method.name}")
+            }
+        }
+        SharedConstants.pluginDeclaredApiMethodMap[instance.metadata.id!!] =
+            instance.apiMethods
+
         val pluginLoadEvent = PluginLoadEvent(instance.metadata.id!!)
         val pluginUnloadEvent = PluginUnloadEvent(instance.metadata.id!!)
         SharedConstants.eventDispatcher.registerHandler(pluginLoadEvent) { eventArgs ->
@@ -40,16 +50,8 @@ object PluginManager : Manager<String, PluginInstance>(
                 return@registerHandler
             }
             eventArgs.pluginInstance.pluginInstance.onLoad(eventArgs.serverInterface)
-            if (DebugOptions.pluginDebug()) {
-                logger.info("Registering plugin ${eventArgs.pluginId} declared api methods:")
-                eventArgs.pluginInstance.pluginInstance.apiMethods.forEach { (_, method) ->
-                    logger.info("\tPlugin ${eventArgs.pluginId} declared method: ${method.name}")
-                }
-            }
-            SharedConstants.pluginDeclaredApiMethodMap[eventArgs.pluginId] =
-                eventArgs.pluginInstance.pluginInstance.apiMethods
-
         }
+
         SharedConstants.eventDispatcher.registerHandler(pluginUnloadEvent) { eventArgs ->
             eventArgs as PluginUnloadEventArgs
             logger.info("Unloading plugin ${eventArgs.pluginId}")
@@ -92,10 +94,12 @@ object PluginManager : Manager<String, PluginInstance>(
     }
 
     private fun doPluginCleanup(id: String) {
-        SharedConstants.pluginEventHandlerTable[id]?.forEach {
-            SharedConstants.eventDispatcher.unregisterHandler(it.first, it.second)
+        if (SharedConstants.pluginDeclaredEventHandlerMap.containsKey(id)) {
+            SharedConstants.pluginDeclaredEventHandlerMap[id]!!.forEach { (k, v) ->
+                SharedConstants.eventDispatcher.unregisterHandler(k, v)
+            }
+            SharedConstants.pluginDeclaredEventHandlerMap.remove(id)
         }
-        SharedConstants.pluginEventHandlerTable.remove(id)
         SharedConstants.pluginEventTable.remove(id)
         SharedConstants.pluginCommandTable[id]?.forEach {
             unregisterCommand(it, SharedConstants.commandDispatcher)

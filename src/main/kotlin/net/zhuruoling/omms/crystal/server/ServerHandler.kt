@@ -15,6 +15,8 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
+import java.util.StringTokenizer
+import java.util.concurrent.ConcurrentHashMap
 
 enum class LaunchParameter
 
@@ -29,7 +31,7 @@ class ServerHandler(
     private val logger = createLogger("ServerHandler")
     private lateinit var out: OutputStream
     private lateinit var input: InputStream
-    private val inputMap = mutableMapOf<Int, String>()
+    private val inputMap = ConcurrentHashMap<Int, String>()
     private var who = "crystal"
     private var process: Process? = null
 
@@ -54,7 +56,7 @@ class ServerHandler(
             if (inputMap.isNotEmpty()) {
                 inputMap.forEach {
                     inputMap.remove(it.key, it.value)
-                    logger.debug("Handling input ${it.value}")
+                    logger.info("Handling input ${it.value}")
                     writer.write(it.value + "\n")
                     writer.flush()
                 }
@@ -158,7 +160,7 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
         if (playerInfo != null) {
             dispatchEvent(
                 PlayerInfoEvent,
-                PlayerInfoEventArgs(content = playerInfo.content, player = playerInfo.content)
+                PlayerInfoEventArgs(content = playerInfo.player, player = playerInfo.content)
             )
             return
         }

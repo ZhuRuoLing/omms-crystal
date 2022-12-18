@@ -7,6 +7,7 @@ import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
+import net.zhuruoling.omms.crystal.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -66,6 +67,5 @@ public class CommandUtil {
 
     void foo(){
         Class<? extends String> clazz = null;
-
     }
 }
