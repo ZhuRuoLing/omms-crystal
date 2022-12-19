@@ -34,6 +34,14 @@ class MyPlugin extends PluginMain {
 
     @EventHandler(event = "crystal.server.overload")
     void serverOverloadEventHandler(ServerInterface serverInterface, ServerOverloadEventArgs eventArgs){
-        serverInterface.broadcast(new Text("Server is overloading!").withColor(Color.red))
+        serverInterface.broadcast(new Text("Server is overloading! Running ${eventArgs.time}ms or ${eventArgs.ticks} ticks behind").withColor(Color.red))
+    }
+
+    @EventHandler(event = "crystal.server.player.join")
+    void serverOverloadEventHandler(ServerInterface serverInterface, PlayerJoinEventArgs eventArgs){
+        serverInterface.broadcast(
+                new TextGroup(new Text("${eventArgs.player}").withColor(Color.yellow),
+                new Text(" joined the impart").withColor(Color.aqua))
+        )
     }
 }

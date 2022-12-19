@@ -56,6 +56,7 @@ open class GroovyPluginInstance(private val pluginFilePath: String) {
                     }
                 }
                 //SharedConstants.pluginDeclaredEventHandlerMap[metadata.id!!] = map
+
             }
         } catch (e: MultipleCompilationErrorsException) {
             throw e

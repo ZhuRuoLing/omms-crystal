@@ -39,6 +39,11 @@ object PluginManager : Manager<String, PluginInstance>(
         }
         SharedConstants.pluginDeclaredApiMethodMap[instance.metadata.id!!] =
             instance.apiMethods
+        SharedConstants.pluginDeclaredEventHandlerMap[instance.metadata.id!!] =
+            instance.eventHandlers
+        instance.eventHandlers.forEach { (t, u) ->
+            SharedConstants.eventDispatcher.registerHandler(t,u)
+        }
 
         val pluginLoadEvent = PluginLoadEvent(instance.metadata.id!!)
         val pluginUnloadEvent = PluginUnloadEvent(instance.metadata.id!!)
