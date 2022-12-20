@@ -60,7 +60,7 @@ object IOUtil {
 object EventUtil {
     @JvmStatic
     fun getPluginDeclaredEvent(pluginId: String, eventID: String): Event {
-        val map = SharedConstants.pluginEventTable[pluginId]
+        val map = SharedConstants.pluginRegisteredEventTable[pluginId]
             ?: throw IllegalArgumentException("Specified pluginId($pluginId) not exist.")
         return map[eventID] ?: throw IllegalArgumentException("Specified eventId($eventID) not exist.")
     }

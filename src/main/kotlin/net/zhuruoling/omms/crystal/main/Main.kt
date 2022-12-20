@@ -154,6 +154,11 @@ fun main(args: Array<String>) {
     PermissionManager.init()
     PluginManager.loadAll()
     consoleHandler.reload()
+    if (args.contains("--noserver")){
+        Thread.sleep(1500)
+        exit()
+        exitProcess(0)
+    }
     eventLoop.dispatch(ServerStartEvent, ServerStartEventArgs(Config.launchCommand, Config.serverWorkingDirectory))
 }
 

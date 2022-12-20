@@ -1,15 +1,18 @@
 package net.zhuruoling.omms.crystal.util;
 
-import kotlin.NotImplementedError;
-import net.zhuruoling.omms.crystal.parser.Parser;
+import net.zhuruoling.omms.crystal.parser.MinecraftParser;
 import net.zhuruoling.omms.crystal.plugin.PluginMain;
 import net.zhuruoling.omms.crystal.plugin.api.annotations.EventHandler;
+import net.zhuruoling.omms.crystal.plugin.api.annotations.Parser;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
 public class PluginUtil {
+    @NotNull
     public static HashMap<String, Method> getPluginDeclaredEventHandlerMethod(@NotNull Class<? extends PluginMain> clazz) {
         var map = new HashMap<String, Method>();
         for (Method declaredMethod : clazz.getDeclaredMethods()) {
@@ -22,9 +25,23 @@ public class PluginUtil {
         return map;
     }
 
-    public static HashMap<String, Parser> getPluginDeclaredParser(@NotNull Class<? extends PluginMain> clazz) {
-        throw new NotImplementedError();
+    @NotNull
+    @Contract(pure = true)
+    public static HashMap<String, MinecraftParser> getPluginDeclaredParser(@NotNull Class<? extends PluginMain> clazz, PluginMain main) {
+        HashMap<String,MinecraftParser> minecraftParserHashMap = new HashMap<>();
+        for (Class<?> declaredClass : clazz.getDeclaredClasses()) {
+            var annotation = declaredClass.getAnnotation(Parser.class);
+            if (annotation!= null){
+                try {
+                    var constructor = declaredClass.getConstructor(clazz);
+                    constructor.setAccessible(true);
+                    minecraftParserHashMap.put(annotation.name(), (MinecraftParser) constructor.newInstance(main));
+                }catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
+                        InvocationTargetException e){
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return minecraftParserHashMap;
     }
-
-
 }

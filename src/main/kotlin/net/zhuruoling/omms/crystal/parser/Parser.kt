@@ -1,14 +1,15 @@
 package net.zhuruoling.omms.crystal.parser
 
-interface Parser {}
+import java.lang.IllegalArgumentException
 
-abstract class MinecraftParser : Parser {
-    abstract fun parseToBareInfo(raw: String): Info?// TODO:
-    abstract fun parseServerStartedInfo(raw: String): ServerStartedInfo?// TODO:
-    abstract fun parsePlayerInfo(raw: String): PlayerInfo?// TODO:
-    abstract fun parseServerOverloadInfo(raw: String): ServerOverloadInfo?// TODO:
-    abstract fun parseServerStartingInfo(raw: String): ServerStartingInfo?// TODO:
-    abstract fun parsePlayerJoinInfo(raw: String): PlayerJoinInfo?// TODO:
+
+abstract class MinecraftParser {
+    abstract fun parseToBareInfo(raw: String): Info?
+    abstract fun parseServerStartedInfo(raw: String): ServerStartedInfo?
+    abstract fun parsePlayerInfo(raw: String): PlayerInfo?
+    abstract fun parseServerOverloadInfo(raw: String): ServerOverloadInfo?
+    abstract fun parseServerStartingInfo(raw: String): ServerStartingInfo?
+    abstract fun parsePlayerJoinInfo(raw: String): PlayerJoinInfo?
     abstract fun parsePlayerLeftInfo(raw: String): PlayerLeftInfo?
 
     abstract fun parseServerStoppingInfo(raw: String):ServerStoppingInfo?
@@ -22,6 +23,14 @@ object ParserManager {
             throw java.lang.UnsupportedOperationException("This parser($minecraftParser) already exists.")
         } else {
             parser[id] = minecraftParser
+        }
+    }
+
+    fun unregisterParser(id: String){
+        if(parser.containsKey(id)){
+            parser.remove(id)
+        }else{
+            throw IllegalArgumentException("illegal parser id: $id")
         }
     }
 

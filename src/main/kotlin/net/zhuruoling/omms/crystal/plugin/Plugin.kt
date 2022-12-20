@@ -6,6 +6,7 @@ import net.zhuruoling.omms.crystal.event.PluginUnloadEvent
 import net.zhuruoling.omms.crystal.event.PluginUnloadEventArgs
 import net.zhuruoling.omms.crystal.main.DebugOptions
 import net.zhuruoling.omms.crystal.main.SharedConstants
+import net.zhuruoling.omms.crystal.parser.ParserManager
 import net.zhuruoling.omms.crystal.util.Manager
 import net.zhuruoling.omms.crystal.util.createLogger
 import net.zhuruoling.omms.crystal.util.unregisterCommand
@@ -41,8 +42,14 @@ object PluginManager : Manager<String, PluginInstance>(
             instance.apiMethods
         SharedConstants.pluginDeclaredEventHandlerMap[instance.metadata.id!!] =
             instance.eventHandlers
+        SharedConstants.pluginDeclaredParserMap[instance.metadata.id!!] =
+            instance.parsers
+
         instance.eventHandlers.forEach { (t, u) ->
-            SharedConstants.eventDispatcher.registerHandler(t,u)
+            SharedConstants.eventDispatcher.registerHandler(t, u)
+        }
+        instance.parsers.forEach { (s, p) ->
+            ParserManager.registerParser(s, p)
         }
 
         val pluginLoadEvent = PluginLoadEvent(instance.metadata.id!!)
@@ -105,11 +112,16 @@ object PluginManager : Manager<String, PluginInstance>(
             }
             SharedConstants.pluginDeclaredEventHandlerMap.remove(id)
         }
-        SharedConstants.pluginEventTable.remove(id)
-        SharedConstants.pluginCommandTable[id]?.forEach {
+        if (SharedConstants.pluginDeclaredParserMap.containsKey(id)){
+            SharedConstants.pluginDeclaredParserMap.forEach {(t, _) ->
+                ParserManager.unregisterParser(t)
+            }
+        }
+        SharedConstants.pluginRegisteredEventTable.remove(id)
+        SharedConstants.pluginRegisteredCommandTable[id]?.forEach {
             unregisterCommand(it, SharedConstants.commandDispatcher)
         }
-        SharedConstants.pluginCommandTable.remove(id)
+        SharedConstants.pluginRegisteredCommandTable.remove(id)
         SharedConstants.pluginDeclaredApiMethodMap.remove(id)
     }
 

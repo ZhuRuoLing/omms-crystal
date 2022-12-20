@@ -4,6 +4,7 @@ import groovy.lang.GroovyClassLoader
 import net.zhuruoling.omms.crystal.event.Event
 import net.zhuruoling.omms.crystal.event.EventHandler
 import net.zhuruoling.omms.crystal.event.getEventById
+import net.zhuruoling.omms.crystal.parser.MinecraftParser
 import net.zhuruoling.omms.crystal.plugin.api.annotations.Api
 import net.zhuruoling.omms.crystal.util.PluginUtil
 import org.codehaus.groovy.control.CompilerConfiguration
@@ -23,6 +24,7 @@ open class GroovyPluginInstance(private val pluginFilePath: String) {
     lateinit var metadata: PluginMetadata
     val apiMethods: HashMap<Pair<String, MutableList<Class<*>>>, Method> = hashMapOf()
     val eventHandlers = hashMapOf<Event, EventHandler>()
+    var parsers = hashMapOf<String, MinecraftParser>()
     init {
         val config = CompilerConfiguration()
         config.sourceEncoding = "UTF-8"
@@ -37,6 +39,7 @@ open class GroovyPluginInstance(private val pluginFilePath: String) {
             val clazz = groovyClassLoader.parseClass(File(pluginFilePath)) as Class<out PluginMain>
             this.pluginMain = clazz.getDeclaredConstructor().newInstance() as PluginMain
             this.metadata = pluginMain.getPluginMetadata()
+            this.parsers = PluginUtil.getPluginDeclaredParser(clazz, pluginMain)
             clazz.declaredMethods.forEach {
                 for (annotation in it.annotations) {
                     if (annotation == Api()){
@@ -55,8 +58,6 @@ open class GroovyPluginInstance(private val pluginFilePath: String) {
                         p.value(this.pluginMain,ServerInterface(this.metadata.id!!) ,args)
                     }
                 }
-                //SharedConstants.pluginDeclaredEventHandlerMap[metadata.id!!] = map
-
             }
         } catch (e: MultipleCompilationErrorsException) {
             throw e

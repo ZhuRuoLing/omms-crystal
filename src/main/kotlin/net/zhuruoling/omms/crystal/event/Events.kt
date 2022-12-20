@@ -196,7 +196,7 @@ fun getEventById(id: String): Event {
         return eventMap[id]!!
     } else {
         var event: Event
-        SharedConstants.pluginEventTable.values.forEach {
+        SharedConstants.pluginRegisteredEventTable.values.forEach {
             if (it.containsKey(id)) {
                 event = it[id]!!
                 return event

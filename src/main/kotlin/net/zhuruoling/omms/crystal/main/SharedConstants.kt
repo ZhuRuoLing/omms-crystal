@@ -8,6 +8,7 @@ import net.zhuruoling.omms.crystal.event.Event
 import net.zhuruoling.omms.crystal.event.EventDispatcher
 import net.zhuruoling.omms.crystal.event.EventHandler
 import net.zhuruoling.omms.crystal.event.EventLoop
+import net.zhuruoling.omms.crystal.parser.MinecraftParser
 import net.zhuruoling.omms.crystal.server.ServerHandler
 import java.lang.reflect.Method
 import java.util.*
@@ -18,11 +19,13 @@ object SharedConstants {
     lateinit var eventDispatcher: EventDispatcher
     lateinit var eventLoop: EventLoop
     lateinit var consoleHandler: ConsoleHandler
-    val pluginCommandTable: HashMap<String, ArrayList<LiteralArgumentBuilder<CommandSourceStack>>> = hashMapOf()
-    val pluginEventTable: HashMap<String, HashMap<String, Event>> = hashMapOf()
     var commandDispatcher = CommandDispatcher<CommandSourceStack>()
+
+    val pluginRegisteredCommandTable: HashMap<String, ArrayList<LiteralArgumentBuilder<CommandSourceStack>>> = hashMapOf()
+    val pluginRegisteredEventTable: HashMap<String, HashMap<String, Event>> = hashMapOf()
     val pluginDeclaredApiMethodMap: HashMap<String, HashMap<Pair<String, MutableList<Class<*>>>, Method>> = hashMapOf()
     val pluginDeclaredEventHandlerMap: HashMap<String, HashMap<Event, EventHandler>> = hashMapOf()
+    val pluginDeclaredParserMap: HashMap<String, HashMap<String, MinecraftParser>> = hashMapOf()
 }
 
 object DebugOptions {
