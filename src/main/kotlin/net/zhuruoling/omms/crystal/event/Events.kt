@@ -3,7 +3,7 @@ package net.zhuruoling.omms.crystal.event
 import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.parser.Info
 import net.zhuruoling.omms.crystal.plugin.PluginInstance
-import net.zhuruoling.omms.crystal.plugin.ServerInterface
+import net.zhuruoling.omms.crystal.plugin.CrystalInterface
 
 
 //base
@@ -129,22 +129,22 @@ class PlayerLeftEventArgs(val player: String) : EventArgs() {
 class PluginLoadEvent(override val pluginId: String) : PluginEvent("crystal.plugin.load", pluginId, 10)
 class PluginLoadEventArgs(
     val pluginId: String,
-    val serverInterface: ServerInterface,
+    val crystalInterface: CrystalInterface,
     val pluginInstance: PluginInstance
 ) : EventArgs() {
     override fun toString(): String {
-        return "PluginLoadEventArgs(pluginId='$pluginId', serverInterface=$serverInterface, pluginInstance=$pluginInstance)"
+        return "PluginLoadEventArgs(pluginId='$pluginId', serverInterface=$crystalInterface, pluginInstance=$pluginInstance)"
     }
 }
 
 class PluginUnloadEvent(override val pluginId: String) : PluginEvent("crystal.plugin.unload", pluginId, 10)
 class PluginUnloadEventArgs(
     val pluginId: String,
-    val serverInterface: ServerInterface,
+    val crystalInterface: CrystalInterface,
     val pluginInstance: PluginInstance
 ) : EventArgs() {
     override fun toString(): String {
-        return "PluginUnloadEventArgs(pluginId='$pluginId', serverInterface=$serverInterface, pluginInstance=$pluginInstance)"
+        return "PluginUnloadEventArgs(pluginId='$pluginId', serverInterface=$crystalInterface, pluginInstance=$pluginInstance)"
     }
 }
 
@@ -166,10 +166,10 @@ class PluginCustomEventArgs : EventArgs() {
 
 //misc
 
-object ConsoleInputEvent : Event("crystal.console.input", 1)
-class ConsoleInputEventArgs(val content: String) : EventArgs() {
+object ServerConsoleInputEvent : Event("crystal.server.console.input", 1)
+class ServerConsoleInputEventArgs(val content: String) : EventArgs() {
     override fun toString(): String {
-        return "ConsoleInputEventArgs(content='$content')"
+        return "ServerConsoleInputEventArgs(content='$content')"
     }
 }
 
@@ -188,6 +188,7 @@ fun registerEvents() {
         this["crystal.server.player.info"] = PlayerInfoEvent
         this["crystal.server.player.join"] = PlayerJoinEvent
         this["crystal.server.player.left"] = PlayerLeftEvent
+        this["crystal.server.console.input"] = ServerConsoleInputEvent
     }
 }
 

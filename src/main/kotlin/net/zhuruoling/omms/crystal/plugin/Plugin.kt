@@ -1,5 +1,6 @@
 package net.zhuruoling.omms.crystal.plugin
 
+import net.zhuruoling.omms.crystal.command.CommandManager
 import net.zhuruoling.omms.crystal.event.PluginLoadEvent
 import net.zhuruoling.omms.crystal.event.PluginLoadEventArgs
 import net.zhuruoling.omms.crystal.event.PluginUnloadEvent
@@ -9,7 +10,6 @@ import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.parser.ParserManager
 import net.zhuruoling.omms.crystal.util.Manager
 import net.zhuruoling.omms.crystal.util.createLogger
-import net.zhuruoling.omms.crystal.util.unregisterCommand
 import org.slf4j.Logger
 
 private val logger: Logger = createLogger("PluginLogger")
@@ -61,7 +61,7 @@ object PluginManager : Manager<String, PluginInstance>(
                 logger.warn("Plugin ${eventArgs.pluginId} already loaded!")
                 return@registerHandler
             }
-            eventArgs.pluginInstance.pluginInstance.onLoad(eventArgs.serverInterface)
+            eventArgs.pluginInstance.pluginInstance.onLoad(eventArgs.crystalInterface)
         }
 
         SharedConstants.eventDispatcher.registerHandler(pluginUnloadEvent) { eventArgs ->
@@ -71,7 +71,7 @@ object PluginManager : Manager<String, PluginInstance>(
                 logger.warn("Plugin ${eventArgs.pluginId} already unloaded!")
                 return@registerHandler
             }
-            eventArgs.pluginInstance.pluginInstance.onUnload(eventArgs.serverInterface)
+            eventArgs.pluginInstance.pluginInstance.onUnload(eventArgs.crystalInterface)
             PluginManager.doPluginCleanup(eventArgs.pluginId)
         }
         pair
@@ -81,7 +81,7 @@ object PluginManager : Manager<String, PluginInstance>(
             if (this.map[id]!!.pluginInstance.pluginStatus != PluginStatus.UNLOADED) {
                 SharedConstants.eventLoop.dispatch(
                     PluginLoadEvent(id),
-                    PluginLoadEventArgs(id, ServerInterface(id), this.map[id]!!)
+                    PluginLoadEventArgs(id, CrystalInterface(id), this.map[id]!!)
                 )
             } else {
                 throw PluginAlreadyLoadedException("Plugin $id already loaded.")
@@ -94,14 +94,14 @@ object PluginManager : Manager<String, PluginInstance>(
     fun loadAll() {
         logger.info("Loading all Plugins.")
         this.map.forEach { (t, u) ->
-            SharedConstants.eventLoop.dispatch(PluginLoadEvent(t), PluginLoadEventArgs(t, ServerInterface(t), u))
+            SharedConstants.eventLoop.dispatch(PluginLoadEvent(t), PluginLoadEventArgs(t, CrystalInterface(t), u))
         }
     }
 
     fun unloadAll() {
         logger.info("Unloading all Plugins.")
         this.map.forEach { (t, u) ->
-            SharedConstants.eventLoop.dispatch(PluginUnloadEvent(t), PluginUnloadEventArgs(t, ServerInterface(t), u))
+            SharedConstants.eventLoop.dispatch(PluginUnloadEvent(t), PluginUnloadEventArgs(t, CrystalInterface(t), u))
         }
     }
 
@@ -113,13 +113,13 @@ object PluginManager : Manager<String, PluginInstance>(
             SharedConstants.pluginDeclaredEventHandlerMap.remove(id)
         }
         if (SharedConstants.pluginDeclaredParserMap.containsKey(id)){
-            SharedConstants.pluginDeclaredParserMap.forEach {(t, _) ->
+            SharedConstants.pluginDeclaredParserMap[id]!!.forEach {(t, _) ->
                 ParserManager.unregisterParser(t)
             }
         }
         SharedConstants.pluginRegisteredEventTable.remove(id)
         SharedConstants.pluginRegisteredCommandTable[id]?.forEach {
-            unregisterCommand(it, SharedConstants.commandDispatcher)
+            CommandManager.unregister(it)
         }
         SharedConstants.pluginRegisteredCommandTable.remove(id)
         SharedConstants.pluginDeclaredApiMethodMap.remove(id)

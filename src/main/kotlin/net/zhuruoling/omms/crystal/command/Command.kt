@@ -1,7 +1,6 @@
 package net.zhuruoling.omms.crystal.command
 
 import com.mojang.brigadier.arguments.ArgumentType
-import com.mojang.brigadier.arguments.BoolArgumentType
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
@@ -17,7 +16,9 @@ import net.zhuruoling.omms.crystal.permission.Permission
 import net.zhuruoling.omms.crystal.permission.PermissionManager
 import net.zhuruoling.omms.crystal.permission.comparePermission
 import net.zhuruoling.omms.crystal.permission.reslovePermissionLevel
-import net.zhuruoling.omms.crystal.util.createLogger
+import net.zhuruoling.omms.crystal.text.Color
+import net.zhuruoling.omms.crystal.text.Text
+import net.zhuruoling.omms.crystal.text.TextGroup
 
 
 fun literal(literal: String): LiteralArgumentBuilder<CommandSourceStack> {
@@ -57,6 +58,7 @@ val helpCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.com
     1
 }
 
+
 val permissionCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.commandPrefix + "permission").then(
     literal("set").then(
         wordArgument("player")
@@ -93,18 +95,35 @@ val permissionCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Conf
                 true
         }.executes {
             PermissionManager.deletePlayer(getWord(it, "player"))
+
             1
         }
     )
 ).then(
     literal("list").executes {
         val permissionStorage = PermissionManager.convertToPermissionStorage()
-        val logger = createLogger("Command")
-        logger.info("Permissions:")
-        logger.info("\tOwners:${permissionStorage.owner.joinToString(separator = ", ")}")
-        logger.info("\tAdmins:${permissionStorage.admin.joinToString(separator = ", ")}")
-        logger.info("\tUsers:${permissionStorage.user.joinToString(separator = ", ")}")
-        logger.info("\tGuests:${permissionStorage.guest.joinToString(separator = ", ")}")
+
+        val textOwner = TextGroup(
+            Text("  Owners: ").withColor(Color.light_purple),
+            Text(permissionStorage.owner.joinToString(separator = ", ")).withColor(Color.reset)
+        )
+        val textAdmin = TextGroup(
+            Text("  Admins: ").withColor(Color.yellow),
+            Text(permissionStorage.admin.joinToString(separator = ", ")).withColor(Color.reset)
+        )
+        val textUser = TextGroup(
+            Text("  Users: ").withColor(Color.aqua),
+            Text(permissionStorage.user.joinToString(separator = ", ")).withColor(Color.reset)
+        )
+        val textGuest = TextGroup(
+            Text("  Guests: ").withColor(Color.blue),
+            Text(permissionStorage.guest.joinToString(separator = ", ")).withColor(Color.reset)
+        )
+        it.source.sendFeedback(Text("Permissions:"))
+        it.source.sendFeedback(textOwner)
+        it.source.sendFeedback(textAdmin)
+        it.source.sendFeedback(textUser)
+        it.source.sendFeedback(textGuest)
         1
     }
 ).then(
@@ -133,7 +152,7 @@ val startCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.co
 }
 
 val stopCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.commandPrefix + "stop").then(
-    argument("force", BoolArgumentType.bool()).requires {
+    literal("force").requires {
         if (it.from == CommandSource.PLAYER)
             comparePermission(it.permissionLevel!!, Permission.ADMIN)
         else
@@ -148,7 +167,7 @@ val stopCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.com
                     CommandSource.CENTRAL -> "central"
                     CommandSource.CONSOLE -> "console"
                 },
-                BoolArgumentType.getBool(it, "force")
+                true
             )
         )
         1
@@ -175,8 +194,13 @@ val stopCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.com
         1
     }
 
-val pluginCommand = literal(Config.commandPrefix + "plugin")
-
+val pluginCommand: LiteralArgumentBuilder<CommandSourceStack> = literal(Config.commandPrefix + "plugin")
+    .then(literal("load"))
+    .then(literal("unload"))
+    .then(literal("reload"))
+    .executes{
+        1
+    }
 
 
 

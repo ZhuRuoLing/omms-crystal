@@ -2,7 +2,7 @@ package net.zhuruoling.omms.crystal.command
 
 import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.permission.Permission
-import net.zhuruoling.omms.crystal.permission.PermissionManager
+import net.zhuruoling.omms.crystal.text.Text
 import net.zhuruoling.omms.crystal.text.TextGroup
 import net.zhuruoling.omms.crystal.text.TextSerializer
 import net.zhuruoling.omms.crystal.util.createLogger
@@ -15,19 +15,43 @@ private val logger = createLogger("CommandSourceStack")
 
 class CommandSourceStack(val from: CommandSource, val player: String? = null, val permissionLevel: Permission? = null)
 {
-    fun sendFeedBack(text: TextGroup){
+    val feedbackText = mutableListOf<String>()
+
+    fun sendFeedback(text: TextGroup){
         when(from){
             CommandSource.PLAYER -> {
-                assert(SharedConstants.serverHandler != null)
-                SharedConstants.serverHandler!!.runCatching {
+                assert(SharedConstants.serverController != null)
+                SharedConstants.serverController!!.runCatching {
                     this.input("tellraw $player ${TextSerializer.serialize(text)}")
                 }
             }
-            CommandSource.CONSOLE -> {
+            CommandSource.CENTRAL -> {
+                feedbackText.add(text.toRawString())
+            }
+
+            else -> {
                 logger.info(text.toRawString())
             }
-            else -> {
+        }
+    }
 
+    fun sendFeedback(text:Text){
+        when(from){
+            CommandSource.PLAYER -> {
+                assert(SharedConstants.serverController != null)
+                SharedConstants.serverController!!.run {
+                    this.input("tellraw $player ${TextSerializer.serialize(text)}")
+                }
+            }
+            CommandSource.PLUGIN -> {
+                logger.info(text.toRawString())
+                feedbackText.add(text.toRawString())
+            }
+            CommandSource.CENTRAL -> {
+                feedbackText.add(text.toRawString())
+            }
+            else -> {
+                logger.info(text.toRawString())
             }
         }
     }

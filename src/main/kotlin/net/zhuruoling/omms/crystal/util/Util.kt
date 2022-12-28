@@ -11,6 +11,10 @@ import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
 import ch.qos.logback.core.util.FileSize
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
+import net.zhuruoling.omms.crystal.command.CommandUtil
+import net.zhuruoling.omms.crystal.event.Event
+import net.zhuruoling.omms.crystal.event.EventHandler
+import net.zhuruoling.omms.crystal.main.SharedConstants
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.io.File
@@ -112,4 +116,6 @@ fun createLoggerWithPattern(
 fun <S> unregisterCommand(command: LiteralArgumentBuilder<S>, dispatcher: CommandDispatcher<S>): String? =
     CommandUtil.unRegisterCommand(command, dispatcher)
 
-
+fun registerEventHandler(e: Event, handler: EventHandler){
+    SharedConstants.eventDispatcher.registerHandler(e, handler)
+}

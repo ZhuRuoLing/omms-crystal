@@ -20,6 +20,8 @@ val configContentBase: String
     pluginDirectory=plugins
     #Server Types:vanilla(builtin)
     serverType=vanilla
+    #encoding used in parsing server output
+    encoding=GBK
     commandPrefix=.
     #debug options:
     #   N:None/Off
@@ -38,6 +40,7 @@ object Config {
     var serverType = ""
     var commandPrefix = "."
     var parserName = ""
+    var encoding = "UTF-8"
     fun load():Boolean {
         var isInit = false
         val configPath = joinFilePaths("config.properties")
@@ -58,8 +61,10 @@ object Config {
         pluginDirectory = properties["pluginDirectory"] as String
         commandPrefix = properties["commandPrefix"] as String
         parserName = if (serverType == "vanilla") "builtin" else serverType
+        encoding = properties["encoding"] as String
         DebugOptions.parse(properties["debugOptions"] as String)
         reader.close()
         return isInit
+
     }
 }

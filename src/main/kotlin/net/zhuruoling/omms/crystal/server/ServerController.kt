@@ -4,7 +4,7 @@ package net.zhuruoling.omms.crystal.server
 import net.zhuruoling.omms.crystal.config.Config
 import net.zhuruoling.omms.crystal.event.*
 import net.zhuruoling.omms.crystal.main.SharedConstants
-import net.zhuruoling.omms.crystal.main.SharedConstants.serverHandler
+import net.zhuruoling.omms.crystal.main.SharedConstants.serverController
 import net.zhuruoling.omms.crystal.parser.ParserManager
 import net.zhuruoling.omms.crystal.util.createLogger
 import net.zhuruoling.omms.crystal.util.createServerLogger
@@ -15,23 +15,22 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
-import java.util.StringTokenizer
-import java.util.concurrent.ConcurrentHashMap
+import java.util.Vector
 
 enum class LaunchParameter
 
-class ServerHandler(
+class ServerController(
     private val launchCommand: String,
     private val workingDir: String,
     vararg launchParameters: LaunchParameter?
 ) :
-    Thread("ServerHandler") {
+    Thread("ServerControllerThread") {
 
     private val launchParameters: Array<out LaunchParameter?>
     private val logger = createLogger("ServerHandler")
     private lateinit var out: OutputStream
     private lateinit var input: InputStream
-    private val inputMap = ConcurrentHashMap<Int, String>()
+        private val inputList = Vector<String>()
     private var who = "crystal"
     private var process: Process? = null
 
@@ -53,24 +52,24 @@ class ServerHandler(
         handler.start()
         val writer = out.writer(Charset.defaultCharset())
         while (process!!.isAlive) {
-            if (inputMap.isNotEmpty()) {
-                inputMap.forEach {
-                    inputMap.remove(it.key, it.value)
-                    logger.info("Handling input ${it.value}")
-                    writer.write(it.value + "\n")
+            if (inputList.isNotEmpty()) {
+                inputList.forEach {
+                    logger.info("Handling input $it")
+                    writer.write(it + "\n")
                     writer.flush()
                 }
+                inputList.clear()
             }
             sleep(10)
         }
         val exitCode = process!!.exitValue()
         //logger.info("Server exited with exit code $exitCode.")
-        serverHandler = null
+        serverController = null
         SharedConstants.eventLoop.dispatch(ServerStoppedEvent, ServerStoppedEventArgs(exitCode, who))
     }
 
     fun input(str: String) {
-        inputMap[str.hashCode()] = str
+        inputList.add(str)
     }
 
     fun stopServer(force: Boolean = false, who: String = "crystal") {
@@ -99,7 +98,7 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
     override fun run() {
         try {
             input = serverProcess.inputStream
-            val reader = input.bufferedReader(Charset.forName("GBK"))
+            val reader = input.bufferedReader(Charset.forName(Config.encoding))
             while (serverProcess.isAlive) {
                 sleep(10)
                 val string = reader.readLine()
@@ -160,7 +159,7 @@ class ServerOutputHandler(private val serverProcess: Process, vararg launchParam
         if (playerInfo != null) {
             dispatchEvent(
                 PlayerInfoEvent,
-                PlayerInfoEventArgs(content = playerInfo.player, player = playerInfo.content)
+                PlayerInfoEventArgs(content = playerInfo.content, player = playerInfo.player)
             )
             return
         }

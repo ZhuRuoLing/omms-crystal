@@ -15,7 +15,6 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.reflect.jvm.kotlinFunction
 
 open class GroovyPluginInstance(private val pluginFilePath: String) {
     private val groovyClassLoader: GroovyClassLoader
@@ -55,7 +54,7 @@ open class GroovyPluginInstance(private val pluginFilePath: String) {
                 val eventHandlerMap = PluginUtil.getPluginDeclaredEventHandlerMethod(clazz)// event handler
                 eventHandlerMap.forEach { p -> //convert
                     eventHandlers[getEventById(p.key)] = { args ->
-                        p.value(this.pluginMain,ServerInterface(this.metadata.id!!) ,args)
+                        p.value(this.pluginMain,CrystalInterface(this.metadata.id!!) ,args)
                     }
                 }
             }
@@ -94,13 +93,13 @@ open class GroovyPluginInstance(private val pluginFilePath: String) {
         }
     }
 
-    fun onLoad(serverInterface: ServerInterface?) {
-        pluginMain.onLoad(serverInterface)
+    fun onLoad(crystalInterface: CrystalInterface?) {
+        pluginMain.onLoad(crystalInterface)
         pluginStatus = PluginStatus.LOADED
     }
 
-    fun onUnload(serverInterface: ServerInterface?) {
-        pluginMain.onUnload(serverInterface)
+    fun onUnload(crystalInterface: CrystalInterface?) {
+        pluginMain.onUnload(crystalInterface)
         pluginStatus = PluginStatus.UNLOADED
     }
 

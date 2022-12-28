@@ -9,10 +9,10 @@ import net.zhuruoling.omms.crystal.event.*
 import net.zhuruoling.omms.crystal.main.SharedConstants.consoleHandler
 import net.zhuruoling.omms.crystal.main.SharedConstants.eventDispatcher
 import net.zhuruoling.omms.crystal.main.SharedConstants.eventLoop
-import net.zhuruoling.omms.crystal.main.SharedConstants.serverHandler
+import net.zhuruoling.omms.crystal.main.SharedConstants.serverController
 import net.zhuruoling.omms.crystal.permission.PermissionManager
 import net.zhuruoling.omms.crystal.plugin.PluginManager
-import net.zhuruoling.omms.crystal.server.ServerHandler
+import net.zhuruoling.omms.crystal.server.ServerController
 import net.zhuruoling.omms.crystal.text.Color
 import net.zhuruoling.omms.crystal.text.Text
 import net.zhuruoling.omms.crystal.text.TextGroup
@@ -52,7 +52,7 @@ fun init() {
         registerHandler(ServerStoppedEvent) {
             it as ServerStoppedEventArgs
             logger.info("Server exited with return value ${it.retValue} (who=${it.who})")
-            serverHandler = null
+            serverController = null
             if (it.who == "crystal") {
                 logger.info("Bye.")
                 exit()
@@ -60,21 +60,21 @@ fun init() {
         }
         registerHandler(ServerStopEvent) {
             it as ServerStopEventArgs
-            if (serverHandler == null) {
+            if (serverController == null) {
                 logger.warn("Server is not running!")
             } else {
-                serverHandler!!.stopServer(who = it.id, force = it.force)
+                serverController!!.stopServer(who = it.id, force = it.force)
             }
         }
         registerHandler(ServerStartEvent) {
             val args = (it as ServerStartEventArgs)
-            if (serverHandler != null) {
+            if (serverController != null) {
                 logger.warn("Server already running!")
             }
             logger.info("Starting server using command ${args.startupCmd} at dir: ${args.workingDir}")
-            serverHandler =
-                ServerHandler(args.startupCmd, args.workingDir)
-            serverHandler!!.start()
+            serverController =
+                ServerController(args.startupCmd, args.workingDir)
+            serverController!!.start()
         }
         registerHandler(ServerStartingEvent) {
             it as ServerStartingEventArgs
@@ -93,19 +93,28 @@ fun init() {
                 try {
                     CommandManager.execute(it.content,commandSourceStack)
                 }catch (e:CommandSyntaxException){
-                    e.printStackTrace()
-                    commandSourceStack.sendFeedBack(TextGroup(
+                    //e.printStackTrace()
+                    commandSourceStack.sendFeedback(TextGroup(
                         Text("Incomplete or invalid command, see errors below:\n").withColor(Color.red),
-                        Text(e.rawMessage.string).withColor(Color.red)
+                        Text(e.message!!).withColor(Color.red)
                     ))
                 }
                 catch (e:Exception){
                     e.printStackTrace()
-                    commandSourceStack.sendFeedBack(TextGroup(
+                    commandSourceStack.sendFeedback(TextGroup(
                         Text("Unexpected error occurred while executing command.:\n").withColor(Color.red),
                         Text(e.message!!).withColor(Color.red)
                     ))
                 }
+            }
+        }
+        registerHandler(ServerConsoleInputEvent){
+            it as ServerConsoleInputEventArgs
+            if(serverController != null){
+                serverController!!.input(it.content)
+            }
+            else{
+                logger.warn("Server is NOT running!")
             }
         }
     }

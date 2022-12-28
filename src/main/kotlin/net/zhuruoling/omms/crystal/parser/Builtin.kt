@@ -3,7 +3,7 @@ package net.zhuruoling.omms.crystal.parser
 import org.slf4j.event.Level
 
 
-class BuiltinParser : MinecraftParser() {
+open class BuiltinParser : MinecraftParser() {
 
     private val regexRawInfo =
         Regex("\\[(\\d{2}:\\d{2}:\\d{2})\\] \\[([A-Za-z0-9\\u0020！@#$%^&*\\(\\)+=_-]*)[/]([A-Za-z0-9_-]*)\\]: ([^\\f\\r\\n\\v]*\\w*)")

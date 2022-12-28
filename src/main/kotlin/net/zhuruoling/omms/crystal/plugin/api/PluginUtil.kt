@@ -20,18 +20,6 @@ object PlayerUtil {
     }
 }
 
-object CommandUtil {
-    @JvmStatic
-    fun literal(literal: String): LiteralArgumentBuilder<CommandSourceStack> {
-        return LiteralArgumentBuilder.literal(literal)
-    }
-
-    @JvmStatic
-    fun <T> argument(name: String, type: ArgumentType<T>): RequiredArgumentBuilder<CommandSourceStack, T> {
-        return RequiredArgumentBuilder.argument(name, type)
-    }
-}
-
 object IOUtil {
     @JvmStatic
     fun invokeWebGetRequest(url: String): String? = null

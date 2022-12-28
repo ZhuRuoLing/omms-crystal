@@ -1,6 +1,5 @@
 package net.zhuruoling.omms.crystal.main
 
-import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import net.zhuruoling.omms.crystal.command.CommandSourceStack
 import net.zhuruoling.omms.crystal.console.ConsoleHandler
@@ -9,17 +8,16 @@ import net.zhuruoling.omms.crystal.event.EventDispatcher
 import net.zhuruoling.omms.crystal.event.EventHandler
 import net.zhuruoling.omms.crystal.event.EventLoop
 import net.zhuruoling.omms.crystal.parser.MinecraftParser
-import net.zhuruoling.omms.crystal.server.ServerHandler
+import net.zhuruoling.omms.crystal.server.ServerController
 import java.lang.reflect.Method
 import java.util.*
 import kotlin.collections.HashMap
 
 object SharedConstants {
-    var serverHandler: ServerHandler? = null
+    var serverController: ServerController? = null
     lateinit var eventDispatcher: EventDispatcher
     lateinit var eventLoop: EventLoop
     lateinit var consoleHandler: ConsoleHandler
-    var commandDispatcher = CommandDispatcher<CommandSourceStack>()
 
     val pluginRegisteredCommandTable: HashMap<String, ArrayList<LiteralArgumentBuilder<CommandSourceStack>>> = hashMapOf()
     val pluginRegisteredEventTable: HashMap<String, HashMap<String, Event>> = hashMapOf()

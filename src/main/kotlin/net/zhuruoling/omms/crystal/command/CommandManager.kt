@@ -3,6 +3,9 @@ package net.zhuruoling.omms.crystal.command
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.tree.CommandNode
+import net.zhuruoling.omms.crystal.text.Color
+import net.zhuruoling.omms.crystal.text.Text
+import net.zhuruoling.omms.crystal.util.unregisterCommand
 import org.jline.reader.impl.completer.AggregateCompleter
 import org.jline.reader.impl.completer.ArgumentCompleter
 import org.jline.reader.impl.completer.NullCompleter
@@ -15,8 +18,14 @@ object CommandManager {
         dispatcher.register(node)
     }
 
+    fun unregister(node: LiteralArgumentBuilder<CommandSourceStack>){
+        unregisterCommand(node, dispatcher)
+    }
+
     fun execute(command:String, sourceStack: CommandSourceStack): Int {
-        return dispatcher.execute(command,sourceStack)
+        val ret = dispatcher.execute(command,sourceStack)
+        sourceStack.sendFeedback(Text("ao").withColor(Color.light_purple))
+        return ret
     }
 //.stop true
     fun completer():AggregateCompleter{

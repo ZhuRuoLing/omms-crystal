@@ -5,7 +5,7 @@ import net.zhuruoling.omms.crystal.command.CommandManager
 import net.zhuruoling.omms.crystal.command.CommandSource
 import net.zhuruoling.omms.crystal.command.CommandSourceStack
 import net.zhuruoling.omms.crystal.config.Config
-import net.zhuruoling.omms.crystal.main.SharedConstants.serverHandler
+import net.zhuruoling.omms.crystal.main.SharedConstants.serverController
 import net.zhuruoling.omms.crystal.util.createLogger
 import org.jline.reader.LineReader
 import org.jline.reader.LineReaderBuilder
@@ -19,7 +19,7 @@ class ConsoleHandler : Thread("ConsoleHandler") {
     private lateinit var lineReader: LineReader
 
     @Synchronized
-    fun reload(){
+    fun reload() {
         lineReader = LineReaderBuilder.builder().terminal(terminal).completer(CommandManager.completer()).build()
     }
 
@@ -31,11 +31,11 @@ class ConsoleHandler : Thread("ConsoleHandler") {
                 if (str.startsWith(Config.commandPrefix)) {
                     try {
                         CommandManager.execute(str, CommandSourceStack(CommandSource.CONSOLE))
-                    }catch (e:CommandSyntaxException){
+                    } catch (e: CommandSyntaxException) {
                         logger.error(e.message)
                     }
                 } else {
-                    serverHandler?.input(str)
+                    serverController?.input(str)
                 }
             } catch (e: Exception) {
                 break
