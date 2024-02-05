@@ -5,8 +5,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.tree.CommandNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
-import net.zhuruoling.omms.crystal.text.Color
 import net.zhuruoling.omms.crystal.util.unregisterCommand
 import org.jline.reader.Completer
 import org.jline.reader.impl.completer.AggregateCompleter

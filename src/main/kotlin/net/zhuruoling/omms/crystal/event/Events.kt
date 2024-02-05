@@ -1,8 +1,6 @@
 package net.zhuruoling.omms.crystal.event
 
-import net.zhuruoling.omms.crystal.main.SharedConstants
 import net.zhuruoling.omms.crystal.parser.Info
-import net.zhuruoling.omms.crystal.plugin.PluginInstance
 
 
 //base
@@ -91,9 +89,9 @@ object ServerStoppingEvent : Event("crystal.server.stopping", 1000)
 class ServerStoppingEventArgs : EventArgs()
 
 object ServerStoppedEvent : Event("crystal.server.stopped", 1000)
-class ServerStoppedEventArgs(val retValue: Int, val who: String) : EventArgs() {
+class ServerStoppedEventArgs(val retValue: Int, val cause: String) : EventArgs() {
     override fun toString(): String {
-        return "ServerStoppedEventArgs(retValue=$retValue, who='$who')"
+        return "ServerStoppedEventArgs(retValue=$retValue, who='$cause')"
     }
 }
 

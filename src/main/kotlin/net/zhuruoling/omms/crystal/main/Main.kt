@@ -12,7 +12,7 @@ import net.zhuruoling.omms.crystal.main.SharedConstants.eventLoop
 import net.zhuruoling.omms.crystal.main.SharedConstants.serverThreadDaemon
 import net.zhuruoling.omms.crystal.permission.PermissionManager
 import net.zhuruoling.omms.crystal.plugin.PluginManager
-import net.zhuruoling.omms.crystal.rcon.RconClient
+import net.zhuruoling.omms.crystal.rcon.Rcon
 import net.zhuruoling.omms.crystal.server.ServerStatus
 import net.zhuruoling.omms.crystal.server.ServerThreadDaemon
 import net.zhuruoling.omms.crystal.server.serverStatus
@@ -55,7 +55,7 @@ fun init() {
     eventDispatcher.run {
         registerHandler(ServerStoppingEvent){
             if (Config.enableRcon){
-                RconClient.close()
+                Rcon.close()
             }
         }
         registerHandler(ServerStoppedEvent) {
@@ -63,7 +63,8 @@ fun init() {
             logger.info("Server exited with return value ${it.retValue}")
             serverThreadDaemon = null
             serverStatus = ServerStatus.STOPPED
-            if (it.who == "crystal") {
+            if (it.cause == "crystal") {
+                Rcon.stopServer()
                 logger.info("Bye.")
                 exit()
             }
@@ -107,7 +108,7 @@ fun init() {
             it as RconStartedEventArgs
             if (Config.enableRcon) {
                 logger.info("Attempt to init rcon connection.")
-                RconClient.connect()
+                Rcon.connect()
                 logger.info("Rcon connected.")
             }
         }
@@ -203,6 +204,7 @@ fun main(args: Array<String>) {
         PermissionManager.init()
         consoleHandler.reload()
         val end = System.currentTimeMillis()
+        Rcon.startServer()
         logger.info("Startup preparations finished in ${end - start} milliseconds.")
         if (args.contains("--noserver")) {
             Thread.sleep(1500)

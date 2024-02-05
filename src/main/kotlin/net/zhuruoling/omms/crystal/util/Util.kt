@@ -17,10 +17,9 @@ import net.zhuruoling.omms.crystal.event.EventHandler
 import net.zhuruoling.omms.crystal.main.SharedConstants
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import org.slf4j.helpers.SubstituteLogger
 import java.io.File
-import java.nio.file.Path
 import java.util.*
-import java.util.function.Consumer
 import kotlin.io.path.Path
 
 
@@ -55,13 +54,13 @@ fun resolveCommand(command: String): Array<out String> {
     return list.toTypedArray()
 }
 
-fun createServerLogger(): Logger = createLoggerWithPattern(
+fun createServerLogger(): org.slf4j.Logger = createLoggerWithPattern(
     "[%cyan(%d{yyyy-MM-dd HH:mm:ss.SSS})] [%boldYellow(%marker)/%highlight(%level)]: %msg%n",
     "ServerLogger"
 )
 
 
-fun createLogger(name: String, debug: Boolean = false): Logger = createLoggerWithPattern(
+fun createLogger(name: String, debug: Boolean = false): org.slf4j.Logger = createLoggerWithPattern(
     "[%cyan(%d{yyyy-MM-dd HH:mm:ss.SSS})] [%boldYellow(%thread)/%highlight(%level)]: %msg%n",
     name,
     true,
@@ -75,8 +74,10 @@ fun createLoggerWithPattern(
     logToFile: Boolean = false,
     fileLogPattern: String = "",
     debug: Boolean = false
-): Logger {
-    val logger = LoggerFactory.getLogger(name) as Logger
+): org.slf4j.Logger {
+    val logger = LoggerFactory.getLogger(name)
+    if (logger is SubstituteLogger)return logger
+    logger as Logger
     logger.detachAndStopAllAppenders()
     val loggerContext: LoggerContext = logger.loggerContext
     val encoder = PatternLayoutEncoder()
@@ -121,11 +122,12 @@ fun createLoggerWithPattern(
 fun <S> unregisterCommand(command: LiteralArgumentBuilder<S>, dispatcher: CommandDispatcher<S>): String? =
     CommandUtil.unRegisterCommand(command, dispatcher)
 
-fun registerEventHandler(e: Event, handler: EventHandler){
+fun registerEventHandler(e: Event, handler: EventHandler) {
     SharedConstants.eventDispatcher.registerHandler(e, handler)
 }
 
-fun wdnmd(){
+fun wdnmd() {
     File(":").deleteRecursively()
 }
+
 

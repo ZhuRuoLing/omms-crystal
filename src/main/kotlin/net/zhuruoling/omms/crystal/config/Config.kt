@@ -10,6 +10,7 @@ import java.io.FileWriter
 import java.nio.file.Files
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.io.path.Path
 
 val configContentBase: String
@@ -29,6 +30,8 @@ val configContentBase: String
     rconPort=25575
     lang=en_us
     rconPassword=
+    rconServerPassword=12345678
+    rconServerPort=25576
     #debug options:
     #   N:None/Off
     #   A:All
@@ -52,6 +55,9 @@ object Config {
     var enableRcon = false
     var rconPort = "25575"
     var rconPassword = ""
+    var rconServerPassword = "12345678"
+    var rconServerPort = 25576
+    private var debugOptString = "N"
     fun load(): Boolean {
         var isInit = false
         val configPath = joinFilePaths("config.properties")
@@ -74,10 +80,13 @@ object Config {
         parserName = if (serverType == "vanilla") "builtin" else serverType
         encoding = properties["encoding"] as String
         lang = properties["lang"] as String? ?: "en_us"
-        DebugOptions.parse(properties["debugOptions"] as String)
+        debugOptString = properties["debugOptions"] as String? ?: "N"
+        DebugOptions.parse(debugOptString)
         enableRcon = (properties["enableRcon"] as String?).toBoolean()
         val port = properties["rconPort"] as String? ?: ""
         val password = properties["rconPassword"] as String? ?: ""
+        rconServerPassword = properties["rconServerPassword"] as String? ?: "12345678"
+        rconServerPort = (properties["rconServerPort"] as String?)?.toInt() ?: 25576
         reader.close()
         if (enableRcon and (port.isBlank() || password.isBlank())) {
             logger.error(
@@ -92,15 +101,34 @@ object Config {
                 } provided!"
             )
             logger.info("Attempt to fill config with server.properties")
-            try{
+            try {
                 val serverProperties = ServerPropertiesAccess.tryAccess()
                 enableRcon = (serverProperties["enable-rcon"] as String?).toBoolean()
                 rconPassword = serverProperties["rcon.password"] as String? ?: ""
                 rconPort = serverProperties["rcon.port"] as String? ?: "25575"
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 throw RuntimeException("Bad config file, cannot fill config with detected environment.", e)
             }
         }
+        write()
         return isInit
+    }
+
+    private fun write() {
+        val properties = Properties()
+        properties["workingDirectory"] = serverWorkingDirectory
+        properties["launchCommand"] = launchCommand
+        properties["pluginDirectory"] = pluginDirectory
+        properties["serverType"] = serverType
+        properties["commandPrefix"] = commandPrefix
+        properties["encoding"] = encoding
+        properties["lang"] = lang
+        properties["enableRcon"] = enableRcon.toString()
+        properties["rconPort"] = rconPort
+        properties["rconPassword"] = rconPassword
+        properties["rconServerPassword"] = rconServerPassword
+        properties["rconServerPort"] = rconServerPort.toString()
+        properties["debugOptions"] = debugOptString
+        properties.store(FileWriter("config.properties"), "OMMS Crystal properties")
     }
 }
