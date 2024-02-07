@@ -54,7 +54,7 @@ tasks.withType<KotlinCompile> {
 }
 
 application {
-    mainClass.set("net.zhuruoling.omms.crystal.main.MainKt")
+    mainClass.set("icu.takeneko.omms.crystal.main.MainKt")
 }
 
 publishing{

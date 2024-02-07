@@ -1,9 +1,9 @@
-package net.zhuruoling.omms.crystal.test
+package icu.takeneko.omms.crystal.test
 
 import net.kyori.adventure.text.Component
-import net.zhuruoling.omms.crystal.command.CommandManager
-import net.zhuruoling.omms.crystal.command.literal
-import net.zhuruoling.omms.crystal.rcon.RconListener
+import icu.takeneko.omms.crystal.command.CommandManager
+import icu.takeneko.omms.crystal.command.literal
+import icu.takeneko.omms.crystal.rcon.RconListener
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
